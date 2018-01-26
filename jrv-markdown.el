@@ -26,21 +26,36 @@
     (kill-buffer outbuf)
     (switch-to-buffer buf)))
 
-(defun markdown-to-pdf ()
+(defun markdown-to-pdf (prompt)
   "Export markdown to pdf file and display it in pdf viewer"
-  (interactive)
+  (interactive "P")
   (let ((buf (current-buffer))
         (outbuf (generate-new-buffer "*pdffile*"))
         (outname (markdown-export-file-name ".pdf"))
-        (old-markdown-command markdown-command))
-    (set-buffer buf)
-    (setq markdown-command (concat "pandoc --ascii -f markdown -o " outname))
-    (markdown (buffer-name outbuf))
-    (setq markdown-command old-markdown-command)
-    (kill-buffer outbuf)
-    (let ((process-connection-type nil)) 
-      (start-process "*launch*" nil "xdg-open" outname))
-    (switch-to-buffer buf)))
+        (old-markdown-command markdown-command)
+        (pandoc "pandoc -V 'mainfont:Nimbus Roman' --pdf-engine=xelatex -f markdown"))
+    (setq pandoc
+          (if prompt
+              (read-string "Pandoc command: " pandoc nil pandoc)
+            pandoc))
+    (cond
+     ((string-match "\.pmd$" (buffer-name))
+      (let ((mdfile (replace-regexp-in-string "\.pmd" ".md" (buffer-name))))
+        (message "Running pandoc")
+        (shell-command (concat pandoc " -o " outname " " mdfile) outbuf)))
+     (t         
+      (set-buffer buf)
+      (setq markdown-command (concat pandoc " -o " outname))
+      (message "Running pandoc")
+      (markdown (buffer-name outbuf))
+      (message "Pandoc finished")
+      (setq markdown-command old-markdown-command)))
+    (if (> (buffer-size outbuf) 0)
+        (switch-to-buffer outbuf)
+      (kill-buffer outbuf)
+      (let ((process-connection-type nil)) 
+        (start-process "*launch*" nil "xdg-open" outname))
+      (switch-to-buffer buf))))
 
 
 (defun markdown-key-bindings()

@@ -1,14 +1,26 @@
 (provide 'jrv-notmuch)
 (require 'notmuch)
-(require 'notmuch-address)
 (require 'my-settings)
+(eval-when-compile
+  (require 'my-settings)
+  (require 'notmuch)
+  (require 'gnus)
+  (require 'message))
 
-(defvar notmuch-search-oldest-first)
+(defvar gnus-alias-identity-alist)
+(defvar gnus-alias-default-identity)
+(defvar gnus-alias-identity-rules)
+(defvar gnus-inhibit-images)
+(defvar sendmail-program)
+(defvar fill-flowed-display-column)
+(declare-function gnus-alias-use-identity "gnu-alias")
+
 (setq notmuch-search-oldest-first nil)
-(defvar mail-signature-file)
-(setq mail-signature-file "/path/to/signature/file")
-(defvar notmuch-crypto-process-mime)
+(setq mail-signature-file my-email-signature-file) ;; for sendmail
 (setq notmuch-crypto-process-mime t)
+
+(require 'notmuch-address)
+(setq notmuch-address-command "my-nottoomuch-addresses.sh")
 
 (add-hook 'message-mode-hook '(lambda () (mail-abbrevs-mode t)))
 (add-hook
@@ -17,52 +29,45 @@
     (make-local-variable 'company-backends)
     (setq company-backends '((:separate company-dabbrev company-ispell)))
     (setq-local company-idle-delay 0)))
-(defvar message-citation-line-function)
-(defvar message-citation-line-format "On %a, %b %d %Y at %r, %f wrote:")
 (setq message-citation-line-function 'message-insert-formatted-citation-line)
 (setq message-citation-line-format "On %a, %b %d %Y at %r, %f wrote:")
 
 (setq mailcap-mime-data '(("*" (".*" (viewer . "xdg-open \"%s\"") (type . "*/*")))))
 (mailcap-parse-mailcaps)
 
-(defvar mm-text-html-renderer)
 (setq mm-text-html-renderer 'w3m)
 
-(defvar message-auto-save-directory)
-(setq message-auto-save-directory "/path/to/drafts/")
-(defvar mm-default-directory)
-(setq mm-default-directory "/path/to/default/")
-(defvar message-send-mail-partially-limit)
+(setq message-auto-save-directory my-message-auto-save-directory)
+(setq mm-default-directory my-mm-default-directory)
 (setq message-send-mail-partially-limit nil)
-(defvar gnus-inhibit-images)
 (setq gnus-inhibit-images t)
 
-(defvar message-sendmail-envelope-from)
 (setq message-sendmail-envelope-from 'header)
 (add-hook 'message-send-mail-hook 'cg-feed-msmtp)
 (setq message-send-mail-function 'message-send-mail-with-sendmail)
-;; use pymsmtpq (https://github.com/sbfnk/pymsmtpq) to queue and send mail in background
-(defvar sendmail-program)
 (setq sendmail-program "~/bin/pymsmtpq") 
 (add-hook 'message-sent-hook
           (lambda ()
             (start-process "pymsmtpq-flush" "*notmuch-pymsmtpq*" "pymsmtpq" "--manage" "s")))
-(defvar fill-flowed-display-column)
 (setq fill-flowed-display-column nil)
 (add-hook 'message-send-hook
   (lambda ()
     (when use-hard-newlines
       (harden-newlines))))
 
+(define-key notmuch-tree-mode-map [(control return)]
+  '(lambda ()
+     "Show current message in message pane and switch to message pane"
+     (interactive)
+     (notmuch-tree-show-message-in)
+     (select-window notmuch-tree-message-window)))
+
 (define-key notmuch-tree-mode-map "g" 'get-my-mails)
 (define-key notmuch-search-mode-map "F" 'forward-inline)
 (define-key notmuch-tree-mode-map "F" 'forward-inline)
 
-(defvar message-forward-as-mime)
 (setq message-forward-as-mime t)
 
-(defvar my-run-get-mails)             ; from my-settings
-(defvar my-get-mails-repeat-minutes)  ; from my-settings
 (when my-run-get-mails
   (if (file-exists-p "~/get-my-mails.lock")
       (run-at-time (* 10 60) (* my-get-mails-repeat-minutes 60) 'get-my-mails)
@@ -76,40 +81,33 @@
 ;; Determine identity when message-mode loads
 (add-hook 'message-setup-hook 'gnus-alias-determine-identity)
 ;; set up the identities
-(defvar gnus-alias-identity-alist)
 (setq gnus-alias-identity-alist
-      '(() () ... ()));; personal email information redacted
+      ;; the backquote-comma combination forces evaluation of my-email-signature-file
+      `(("ji" ;; iima identity
+         nil ;; Does not refer to any other identity
+         "Prof Jayanth R Varma <___@___.___> " ;; Sender address
+         nil ;; No organization header
+         nil ;; No extra headers
+         nil ;; No extra body text
+         ,my-email-signature-file)
+        ("jg"  ;; gmail identity
+         nil
+         "Prof Jayanth R Varma <___@___.___> "
+         nil ;; No organization header
+         nil ;; No extra headers
+         nil ;; No extra body text
+         ,my-email-signature-file)))
 ;; default identity
-(defvar gnus-alias-default-identity)
-(setq gnus-alias-default-identity "");; personal email information redacted
+(setq gnus-alias-default-identity "ji")
 ;; Define rules to match gmail identity
-(defvar gnus-alias-identity-rules) 
 (setq gnus-alias-identity-rules
-      '(() ())) ;; personal email information redacted
+      '(("jg" ("any" "___@___.___" both) "jg")
+        ;; ("cf" ("any" "chr-fin@iima.ac.in" both) "cf")
+        ))
 
 
 ;;;;;;;;;;;;; functions 
 
-
-(defun days-seconds (n)
-  "Convert days to seconds"
-  (let* ((offset (seconds-to-time (* n 24 60 60)))
-         (p (decode-time (time-subtract (current-time) offset))))
-         (format-time-string "%s" 
-                                (encode-time 0 0 0 (nth 3 p) (nth 4 p) (nth 5 p)))))
-
-(declare-function notmuch-tree "notmuch-tree")
-(defun notmuch-yesterday (n)
-  "Display mails of last n days in tree buffer"
-  (interactive "p")
-  (notmuch-tree (concat (days-seconds n) ".." ) nil nil 
-                (concat "notmuch-tree-" (number-to-string n) "-day"))) 
-
-(declare-function notmuch-search "notmuch-search")
-(defun notmuch-search-yesterday (n)
-  "Display mails of last n days in search buffer"
-  (interactive "p")
-  (notmuch-search (concat (days-seconds n) ".." )))
 
 (add-hook 'message-mode-hook 'my-message-mode-hook)
 
@@ -117,11 +115,6 @@
 ;; Choose account label to feed msmtp -a option based on From header in Message buffer;
 ;; This function must be added to message-send-mail-hook for on-the-fly change of From address
 ;; before sending message since message-send-mail-hook is processed right before sending message.
-(declare-function message-mail-p "message")
-(declare-function message-narrow-to-headers "message")
-(declare-function message-fetch-field "message")
-(declare-function message-goto-body "message")
-(defvar message-sendmail-extra-arguments)
 (defun cg-feed-msmtp ()
   "Use from address to set smtp sender account"
   (if (message-mail-p)
@@ -134,32 +127,34 @@
                 (save-restriction
                   (message-narrow-to-headers)
                   (message-fetch-field "to")))
-               (iima "");; personal email information redacted
-               (gmail "");; personal email information redacted
+               (iima "___@___.___")
+               (iimahd "___@___.___")
+               (gmail "___@___.___")
+               ;; (chr-fin-old "chr-fin@iimahd.ernet.in")
+               ;; (chr-fin "chr-fin@iima.ac.in")
                (account 
                 (cond
                  ((string-match iima from) iima)
+                 ((string-match iimahd from) iima)
                  ((string-match gmail from) gmail)
                  )))
           (setq message-sendmail-extra-arguments (list '"-a" account))))))
 
-(defun notmuch-tree-unread ()
-    "show unread messages in tree"
-    (interactive)
-    (notmuch-tree "tag:unread"))
+(defun vwh()
+  "View HTML part using vwh" 
+  (interactive)
+  (message "Loading in browser using vwh")
+  (notmuch-show-pipe-message nil "vwh"))
 
-(declare-function notmuch-show-pipe-message "notmuch-show")
-(define-key notmuch-tree-mode-map "]"
-  (lambda () "View HTML part using vwh" 
-    (interactive) (notmuch-show-pipe-message nil "vwh")))
-
+(define-key notmuch-tree-mode-map "]" 'vwh)
+(define-key notmuch-show-mode-map "]" 'vwh)
+  
 (defvar my-get-mails-option)  ; from my-settings
 (defun get-my-mails () 
-  "Get my mails. Calls shell script get-my-mails to run offlineimap" 
+  "Get my mails" 
   (interactive)
   (start-process "get-my-mails"  "*notmuch-get-my-mails*" "get-my-mails" my-get-mails-option))
 
-(declare-function notmuch-tree-close-message-window "notmuch-tree")
 (defun forward-inline()
   "Forward the current message inline." 
   (interactive) 
@@ -185,7 +180,6 @@
 
 
 ;; message-mode key bindings, de-fill, word-wrap, flyspell
-(declare-function gnus-alias-use-identity "gnu-alias")
 (defun my-message-mode-hook ()
   "Hook to define keys, set wrap, autofill etc in message mode"
   (define-key notmuch-message-mode-map [(control ?c) (?i)]
@@ -205,6 +199,7 @@
   (flyspell-mode)
   )
 
+
 ;; format-flowed by default
 ;; http://article.gmane.org/gmane.emacs.gnus.user/14508
 (defun harden-newlines ()
@@ -214,4 +209,53 @@
     (while (search-forward "\n" nil t)
       (put-text-property (1- (point)) (point) 'hard t))))
 
-;; some code redacted as useless for others
+(define-key notmuch-show-mode-map "\C-c\C-o" 'goto-address-at-point)
+(define-key notmuch-tree-mode-map "!"
+  (lambda ()
+    "toggle unread tag for message"
+    (interactive)
+    (if (member "unread" (notmuch-tree-get-tags))
+        (notmuch-tree-tag '("-unread"))
+      (notmuch-tree-tag '("+unread")))))
+
+(setq notmuch-saved-searches '(
+        (:name "unread" :query "tag:unread" :key "u" :search-type tree)
+        (:name "sent" :query "tag:sent" :key "t" :search-type tree)
+        (:name "drafts" :query "tag:draft" :key "d" :search-type tree)
+        (:name "1 days" :query "date:1D.." :key "1" :search-type tree)
+        (:name "2 days" :query "date:2D.." :key "2" :search-type tree)
+        (:name "5 days" :query "date:5D.." :key "5" :search-type tree)))
+
+;; redefine notmuch-tree-show-message-in to split window vertically
+(defun notmuch-tree-show-message-in ()
+  "Show the current message (in split-pane)."
+  (interactive)
+  (let ((id (notmuch-tree-get-message-id))
+	(inhibit-read-only t)
+	buffer)
+    (when id
+      ;; We close and reopen the window to kill off un-needed buffers
+      ;; this might cause flickering but seems ok.
+      (notmuch-tree-close-message-window)
+      (setq notmuch-tree-message-window
+	    ;; Split message pane vertically in wide windows (width > 160)
+	    ;; Under RFC 2045 line length is 76 characters so plain text emails
+	    ;; will be displayed properly in 80 character wide pane
+	    ;; HTML mail will anyway reformat to pane width
+	    ;; In narrow windows, split pane horizontally 1:3
+	    (if (> (window-total-width) 160)
+		(split-window-horizontally)
+	      (split-window-vertically (/ (window-height) 4))))
+      (with-selected-window notmuch-tree-message-window
+	;; Since we are only displaying one message do not indent.
+	(let ((notmuch-show-indent-messages-width 0)
+	      (notmuch-show-only-matching-messages t))
+	  (setq buffer (notmuch-show id))))
+      ;; We need the `let' as notmuch-tree-message-window is buffer local.
+      (let ((window notmuch-tree-message-window))
+	(with-current-buffer buffer
+	  (setq notmuch-tree-message-window window)
+	  (add-hook 'kill-buffer-hook 'notmuch-tree-message-window-kill-hook)))
+      (when notmuch-show-mark-read-tags
+	(notmuch-tree-tag-update-display notmuch-show-mark-read-tags))
+      (setq notmuch-tree-message-buffer buffer))))

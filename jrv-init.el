@@ -11,20 +11,19 @@
 
 (require 'package)
 (package-initialize)
-;; (defvar package-archives)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ;; ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")))
 
-(require 'my-settings)                       ; lots of things can be customized here
-(defvar my-minimal)                          ; from my-settings
+(require 'my-settings)                         ; lots of things can be customized here
+(defvar my-minimal)                            ; from my-settings
 ;; Sometimes a minimal emacs init file is desired, e.g., when running emacs in a phone or a server.
-;; In this situation, I set my-minimal to t (or any other non nil)
+;; In this situation, my-settings.el sets my-minimal to t (or any other non nil)
 ;; Then, only those packages are loaded that are found in the system
 ;; When 'require' is called with its fourth argument non nil, no error is signalled if the
 ;; package could not be loaded.
 ;; In my main machine, I do want to know if some package did not load
-;; So I set my-minimal to nil on these machines in my-settings.el using hostname
+;; So I set my-minimal to nil on these machines in my-settings.el using hostname 
 
 (require 'jrv-basic-customize nil my-minimal)  ; theme, history, font-lock
 (require 'jrv-key-alias nil my-minimal)        ; my keybindings, aliases
@@ -45,23 +44,19 @@
 (require 'jrv-python-elpy nil my-minimal)      ; python help, send-line/region
 (require 'jrv-pweave nil my-minimal)           ; pweave using ESS and Pweave
 (require 'jrv-cpp nil my-minimal)              ; C++ compilation options
-;; commented out as it is probably useless for anybody else
-;; (require 'jrv-windup-etc nil my-minimal)
+(require 'jrv-windup-etc nil my-minimal)       ; windup, load-jrv-org, timelog
 (require 'jrv-notmuch nil my-minimal)          ; notmuch configuration
 (require 'jrv-csv nil my-minimal)              ; csv mode 
-
 (when (require 'epa nil my-minimal)            ; gpg encryption and decryption
   (epa-file-enable))                           ; enable it
-
 (require 'ess-site nil my-minimal)             ; ESS Support for R language
 (require 'ess-rutils nil my-minimal)           ;   ..
-
-(when (require 'yasnippet nil my-minimal)      ; load yasnippet
+(defvar my-yas-snippets-dir) ; from my-settings
+(when (require 'yasnippet nil my-minimal)      ; yasnippet
+  (setq yas-snippet-dirs (list my-yas-snippets-dir)) ; set snippets folder
   (declare-function yas-global-mode 1 "yasnippet")
-  (yas-global-mode 1))                         ; enable it all modes
-
+  (yas-global-mode 1))                         ; enable it globally
 (when (require 'hfyview nil my-minimal)        ; quick print buffer using web browser
   (declare-function hfyview-add-to-files-menu "hfyview")
   (hfyview-add-to-files-menu))                 ; add this to file menu
-
 (require 'jrv-finish nil my-minimal)           ; open files, set up windows etc

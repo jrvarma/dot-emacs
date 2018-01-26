@@ -36,6 +36,9 @@
 (setq message-log-max 2000)
 ;;; History, recent files and backups
 ;; History
+(defvar savehist-file) 
+(defvar my-savehist-file) ; from my-settings
+(setq savehist-file my-savehist-file) 
 (savehist-mode t)                      ; do customization before activate
 ;; Recent files
 (require 'recentf)

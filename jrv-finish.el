@@ -1,12 +1,3 @@
-(provide 'jrv-finish)
-(require 'jrv-org) ;; needed for my-org 
-(require 'jrv-git) ;; needed for local-git-copy
-(require 'jrv-notmuch)          ; notmuch configuration
-(require 'my-settings)
-
-(when (= (buffer-size (get-buffer "*Compile-Log*")) 0)
-  (kill-buffer (get-buffer "*Compile-Log*")))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; THIS CODE IS HIGHLY SPECIFIC TO MY NEEDS                 ;;
 ;; AND IS PROBABLY USELESS TO ANYBODY ELSE                  ;;
@@ -18,13 +9,21 @@
 ;; I use the following command to display the emacs frame   ;;
 ;; with my set of windows/buffers/screens. The command can  ;;
 ;; be run again if the emacsclient is killed                ;;
-;;    nohup emacsclient -c -e '(run-jrv-finish t t t)' &    ;;
+;;    nohup emacsclient -c -e "(run-jrv-finish t t t)" &    ;;
 ;; Some of my files are in the cloud. After login,          ;;
 ;; I wait for dropbox to sync, then I process that folder   ;;
 ;; outside emacs. When the files are ready for use, I run   ;;
 ;; the command                                              ;;
-;;    emacsclient --eval '(after-dropbox-sync)'             ;;
+;;    emacsclient --eval "(after-dropbox-sync)"             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(provide 'jrv-finish)
+(require 'jrv-org) ;; needed for my-org 
+(require 'jrv-git) ;; needed for local-git-copy
+(require 'jrv-notmuch)          ; notmuch configuration
+(require 'my-settings)
+
+(when (= (buffer-size (get-buffer "*Compile-Log*")) 0)
+  (kill-buffer (get-buffer "*Compile-Log*")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rest of this file contains only function defuns   
@@ -86,14 +85,8 @@
       (set-window-buffer (next-window) jrv-finish-org-buffer))))
 
 (declare-function notmuch-tree "notmuch-tree")
-(declare-function notmuch-yesterday "jrv-notmuch.el")
 (defun my-mail-windows()
-  (let (notmuch-yesterday-buffer)
-    (notmuch-yesterday 1)
-    (setq notmuch-yesterday-buffer (current-buffer))
-    (notmuch-tree "tag:unread")
-    (when (split-window-maybe)
-      (set-window-buffer (next-window) notmuch-yesterday-buffer))))
+    (notmuch-tree "tag:unread"))
 
 (defun after-dropbox-sync()
   "rerun my-std-windows after dropbox synced"
@@ -127,6 +120,11 @@
 (defun run-jrv-finish-main (std mail &optional no-ads)
   "Intended to be called by run-jrv-finish"
   (set-frame-name "Main Emacs")
+  (when (and std
+             my-run-timelog
+             (< (nth 2 (decode-time)) 17)
+             (not (boundp 'timelog-timer)))
+    (defvar timelog-timer (run-at-time "5:00pm" nil 'timelog)))
   (declare-function escreen-install "escreen")
   (declare-function escreen-create-screen "escreen")
   (declare-function escreen-goto-screen-0 "escreen")
@@ -149,7 +147,5 @@
     (start-process "dropbox-synced" "dropbox-wait"
                    "call-emacs-after-dropbox-sync"))
   (when jrv-finish-after-dropbox-sync-waiting (after-dropbox-sync)))
-
-;;;;;;;;;;;;;;;;;;;;;;;; end functions   ;;;;;;;;;;;;;;;;;;;;
 
 

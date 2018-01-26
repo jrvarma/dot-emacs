@@ -49,10 +49,6 @@
 ;;; Abbreviations for common commands
 ;; space followed by letter (a/b/c/h/l/m/s)
 ;; backslash is needed to include punctuation characters in function names
-(defun my-locate-with-filter()
-  (interactive) 
-  (let ((current-prefix-arg t))
-    (call-interactively 'locate-with-filter)))
 (defalias '\ a '(lambda () (interactive) (ansi-term "/bin/bash")))
 (defalias '\ b '(lambda ()
                   (interactive)
@@ -61,11 +57,18 @@
                   ))
 (defalias '\ c 'calculator)
 (defalias '\ h 'hfyview-buffer)
-(defalias '\ l 'my-locate-with-filter)
+
+(defalias '\ l 'locate-with-filter)
+(defvar locate-command)
+(setq locate-command "locate -iA")
+(defvar locate-prompt-for-command t)
+(setq locate-prompt-for-command t)
+
 (defalias '\ m 'menu-bar-mode)
 (defalias '\ s 'kill-star-buffers)
+(defalias '2h 'send-buffer-file-to-h)
 (defalias '\ - 'space-to-dash)
+
 (defalias '\ \; 'mylaunch)
 (defalias '\ g 'magit-status)
-(defalias '2h 'send-buffer-file-to-h)
 

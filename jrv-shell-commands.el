@@ -15,9 +15,8 @@
   (revert-buffer t t t))
 
 (defun dired-launch-file ()
-  "Launch system associated program on current file in dired buffer"
-  ;; modified from
-  ;; http://omniorthogonal.blogspot.in/2008/05/useful-emacs-dired-launch-hack.html
+  "Launch system associated program on current file in dired buffer
+modified from http://omniorthogonal.blogspot.in/2008/05/useful-emacs-dired-launch-hack.html"
   (interactive)
   (let ((process-connection-type nil)) 
     (start-process "*launch*" nil "xdg-open" (dired-get-filename))))

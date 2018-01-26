@@ -34,19 +34,24 @@
 (defvar org-log-done)
 (setq org-log-done t)
 
+(defvar org-timer-pause-time)
 (defvar my-timelog-categories-file) ; from my-settings
 (declare-function org-insert-time-stamp "org")
+(defvar my-org-buffer) ; defined below
 (defun my-org()
   "Open my org file."
   (interactive)
   (find-file h-org-jrv-file)
+  (setq my-org-buffer (current-buffer))
   (when my-timelog-categories-file
     (goto-char (point-min))
     (search-forward "* -- TIME LOG --\n" nil 0)
     (insert "* ")
     (org-insert-time-stamp nil nil t)
     (insert-file-contents my-timelog-categories-file)
-    ))
+    (org-timer-start)
+    (setq org-timer-pause-time (current-time))
+    (org-timer-set-mode-line 'pause)))
 
 ;; Press F9 to perform quick interruption of timers and task clocking
 ;; 1. shift to org file
@@ -55,24 +60,25 @@
 ;; Press Shift F9 for reverse: resume timers and start task clocking
 
 (declare-function org-clock-out "org")
-(defvar org-timer-pause-time)
 (declare-function org-timer-set-mode-line "org")
 (declare-function org-timer-value-string "org")
 (defun clock-out-and-pause-timer ()
   "Clock out and pause timer"
   (interactive) 
   ;; shift to org file
-  (find-file h-org-jrv-file)
-  ;; clock out without error 
-  (org-clock-out nil t nil) 
-  ;; pause timer 
-  ;; this code modified from 
-  ;; source code of org-timer-pause-or-continue
-  (cond 
-   ((not org-timer-pause-time) 
-    (setq org-timer-pause-time (current-time))
-    (org-timer-set-mode-line 'pause)
-    (message "Timer paused at %s" (org-timer-value-string)))))
+  (let* ((old-buffer (current-buffer)))
+    (set-buffer my-org-buffer)
+    ;; clock out without error 
+    (org-clock-out nil t nil) 
+    ;; pause timer 
+    ;; this code modified from 
+    ;; source code of org-timer-pause-or-continue
+    (when (and (boundp 'org-timer-pause-time)
+               (not org-timer-pause-time))
+      (setq org-timer-pause-time (current-time))
+      (org-timer-set-mode-line 'pause)
+      (message "Timer paused at %s" (org-timer-value-string)))
+    (set-buffer old-buffer)))
 
 (declare-function org-clock-in "org")
 (declare-function org-float-time "org")
@@ -100,6 +106,8 @@
 
 (global-set-key [(shift f9)] 'clock-in-and-resume-timer)
 
-
-
-
+;; org capture
+(defvar org-default-notes-file)
+(setq org-default-notes-file h-org-jrv-file)
+(define-key global-map "\C-cc" 'org-capture)
+(require 'org-notmuch)

@@ -1,10 +1,9 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; THIS CODE IS HIGHLY SPECIFIC TO MY NEEDS                 ;;
+;; AND IS PROBABLY USELESS TO ANYBODY ELSE                  ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (provide 'jrv-git)
 ;;;; daily backups (with git)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; THIS FILE IS PROBABLY USELESS TO ANYBODY ELSE    ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defun n-days-old (filename ndays)
   (< (float-time (nth 5 (file-attributes filename))) 

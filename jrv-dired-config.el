@@ -58,5 +58,8 @@
                       (progn (search-forward (char-to-string ch)) (backward-char) t)))
  (t (message (concat "No file beginning with " (char-to-string ch)))))) 
 
-
-
+;; add guesses for command to be run on file based on extension
+(defvar dired-guess-shell-alist-user)
+(setq dired-guess-shell-alist-user
+      '(("\\.py\\'" "python")
+        ("\\.pdf\\'" "evince" "xournal" "okular")))

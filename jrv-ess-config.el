@@ -1,8 +1,6 @@
 (provide 'jrv-ess-config)
 
-(declare-function dired-do-async-shell-command "dired.el")
 (declare-function ess-rutils-html-docs "ess-rutils.el")
-
 (defvar inferior-R-args)
 (setq inferior-R-args "--no-restore-history --no-save")
 (defvar ess-ask-for-ess-directory)

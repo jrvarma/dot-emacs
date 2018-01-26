@@ -29,6 +29,7 @@
 ) )
 
 ;; this function uses a python script beamer-ho.py to add watermarks etc
+;; beamer-ho.py is assumed to be in the path
 (defun make-handout-pdf()
   "Compile handout PDF from underlying tex file"
   (interactive)
@@ -64,12 +65,10 @@
        (((output-dvistyle-pstricks)  "xdg-open") (output-dvi "xdg-open") 
         (output-pdf "xdg-open") (output-html "xdg-open"))))
 
-(declare-function dired-do-async-shell-command "dired-aux.el")
-(defvar path-to-Not-So-Short-Guide-to-Latex "/path/to/lshort.pdf")
+(defvar my-latex-help-file) ;; from my-settings
 (defun TeX-help ()
   "Display the Not so short guide to Latex"
   (interactive)
-  (let ((process-connection-type nil)) 
-    (dired-do-async-shell-command
-     "xdg-open" nil (list path-to-Not-So-Short-Guide-to-Latex))))
+  (call-process-shell-command
+   (concat "xdg-open " my-latex-help-file)))
 

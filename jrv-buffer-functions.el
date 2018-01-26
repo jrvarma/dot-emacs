@@ -58,7 +58,8 @@
               (setq count (1+ count)))))))
     (message "%d buffer(s) killed" count)))
 
-(defvar escreen-current-screen-number)
+(declare-function escreen-current-screen-number "escreen")
+;(defvar escreen-current-screen-number)
 (defvar my-buffers-on-all-screens) ; from my-settings
 (defvar my-dont-ignore-star-buffers) ; from my-settings
 
@@ -80,11 +81,11 @@
                  (not (string-match-p my-dont-ignore-star-buffers name))
                  (not (get-buffer-process name))))
            (notmuch-buffer
-            (string-match-p "^\\*?\\(notmuch\\|sent\\|unsent\\)" name)))
+            (string-match-p "^\\*\\(notmuch\\|sent\\|unsent\\)" name)))
       (cond
-       ((eq escreen-current-screen-number 0)
+       ((eq (escreen-current-screen-number) 0)
         (or ignorable-star-buffer notmuch-buffer))
-       ((eq escreen-current-screen-number 1)
+       ((eq (escreen-current-screen-number) 1)
         (not (or show-on-all-screens notmuch-buffer)))
        (t nil)))))
 

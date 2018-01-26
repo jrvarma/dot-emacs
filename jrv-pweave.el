@@ -10,7 +10,7 @@
 (declare-function ess-noweb-mode "ess-noweb-mode")
 
 (add-to-list 'auto-mode-alist '("\\.Plw\\'" . Plw-mode))
-
+(add-to-list 'auto-mode-alist '("\\.pmd\\'" . pmd-mode))
 
 (define-derived-mode Plw-mode ess-noweb-mode "Pweave"
   "Python code chunks in ESS-Noweb" 
@@ -18,6 +18,15 @@
   (setq ess-noweb-doc-mode 'latex-mode)
   (define-key ess-noweb-mode-prefix-map "s" 'my-weave)
   (define-key ess-noweb-mode-prefix-map "x" 'pweave-inline)
+)
+
+(define-derived-mode pmd-mode ess-noweb-mode "Pweavemarkdown"
+  "Python code chunks in markdown using ESS-Noweb" 
+  (setq ess-noweb-default-code-mode 'python-mode)
+  (setq ess-noweb-doc-mode 'markdown-mode)
+  (define-key ess-noweb-mode-prefix-map "s" 'my-weave)
+  (define-key ess-noweb-mode-prefix-map "x" 'pweave-inline)
+  (define-key ess-noweb-mode-prefix-map "P" 'markdown-to-pdf)
 )
 
 (defun pweave-inline()
@@ -32,17 +41,22 @@
 Optional parameter CHOOSE is passed on to pweave or ess-swv-weave.
 "
   (interactive "P")
-  (cond ((equal ess-noweb-default-code-mode 'python-mode) (pweave choose))
-        (t (ess-swv-weave choose))))
+  (cond
+   ((equal ess-noweb-default-code-mode 'python-mode)
+    (pweave
+     (if (equal ess-noweb-doc-mode 'markdown-mode) "markdown" "tex")
+     choose))
+   (t (ess-swv-weave choose))))
 
-(defun pweave (&optional choose)
+(defun pweave (doctype &optional choose)
   "Pweave file in current buffer
 
-If CHOOSE is non-nil prompt for Pweave options, else use '-f tex'"
+If CHOOSE is non-nil prompt for Pweave options, else use '-f doctype'"
   (interactive "P")
-  (let ((pweave-options (if choose
-                          (read-from-minibuffer "Pweave options" nil nil nil nil "-f tex")
-                        "-f tex")))
+  (let* ((pwv-opt (concat "-f " doctype " -i noweb"))
+         (pweave-options (if choose
+                             (read-from-minibuffer "Pweave options" pwv-opt nil nil nil pwv-opt)
+                           pwv-opt)))
   (save-excursion
     (basic-save-buffer); do not Pweave old version of file !
     (let* ((plw-file (buffer-file-name))
@@ -50,9 +64,10 @@ If CHOOSE is non-nil prompt for Pweave options, else use '-f tex'"
            (py-buf (get-buffer-create "*Pweave Python Output*"))
            (pwv-status))
      (with-current-buffer py-buf (erase-buffer))
-      (message "Running Pweave %s %s" pweave-options plw-file)
-      (setq pwv-status
-            (call-process-shell-command (concat "Pweave " pweave-options " " plw-file) nil py-buf t))
-      (if (not (= 0 pwv-status))
-          (message "** OOPS: error in Pweave (%d)!" pwv-status))
-      (display-buffer py-buf)))))
+     (message "Running Pweave %s %s" pweave-options plw-file)
+     (setq pwv-status
+           (call-process-shell-command (concat "Pweave " pweave-options " " plw-file) nil py-buf t))
+     (cond
+      ((= 0 pwv-status) (message "done")) 
+      (t (message "** OOPS: error in Pweave (%d)!" pwv-status)
+         (display-buffer py-buf)))))))

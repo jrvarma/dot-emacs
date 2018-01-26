@@ -9,7 +9,6 @@
 
 (declare-function elpy-enable  "elpy")
 (declare-function elpy-use-ipython  "elpy")
-(declare-function dired-do-async-shell-command  "dired-aux")
 (declare-function flycheck-mode  "flycheck.el")
 
 (elpy-enable)
@@ -25,8 +24,7 @@
   (add-hook 'elpy-mode-hook 'my-flycheck))
 
 (defun my-flycheck()
-  ;; flycheck-mode creates problems in pweave documents
-  (unless (string-match (file-name-extension buffer-file-name) "Plw$")
+  (unless (string-match (file-name-extension buffer-file-name) "(Plw)|(pmd)$")
       (flycheck-mode)))
 
 ;; Restore windmove (meta-arrow key) bindings in elpy mode
@@ -41,19 +39,18 @@
 (eval-after-load 'elpy '(restore-windmove-keys))
 
 ;;; Load offline python html documentation in browser
-(defvar offline-python-help-file
-  "/path/to/python-doc-dir/index.html")
+(defvar my-offline-python-help-file) ; my-settings
 (defun python-help ()
   "Launch python help in browser or windows help file"
   (interactive)
-    (let ((process-connection-type nil)) 
-      (dired-do-async-shell-command  "xdg-open" nil 
-                                     (list offline-python-help-file))))
+  (message "Opening python help in browser")
+  (call-process-shell-command
+   (concat "xdg-open " my-offline-python-help-file)))
 
 (add-hook
  'python-mode-hook
  '(lambda ()
-    (when (file-exists-p offline-python-help-file)
+    (when (file-exists-p my-offline-python-help-file)
       (define-key python-mode-map [(control ?c) (control ?h)] 'python-help))
     (when (require 'jrv-pydoc nil my-minimal) 
       (define-key python-mode-map [(control ?c) (d)] 'python-insert-docstring))
