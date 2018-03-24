@@ -37,10 +37,11 @@
     (if (y-or-n-p (format "Buffer %s modified; Do you want to save? " 
                           (buffer-name)))
         (save-buffer)))  
-  (message "Making handout file. Please wait..")
-  (async-shell-command
-   (concat "beamer-ho.py '" (file-name-sans-extension (buffer-file-name)) "'"))
-  (message "Done"))
+  (message "Making handout file in background.")
+  (set-process-sentinel 
+   (start-process "beamer-ho" "*beamer-ho*" "beamer-ho.py" 
+                  (file-name-sans-extension (buffer-file-name)))
+   '(lambda (process event) (message "Making handout file status: %s" event))))
 
 (defun latex-keydef(which-map)
   (define-key which-map [(control ?c) (control ?h)] 'TeX-help)
@@ -69,6 +70,6 @@
 (defun TeX-help ()
   "Display the Not so short guide to Latex"
   (interactive)
-  (call-process-shell-command
-   (concat "xdg-open " my-latex-help-file)))
+  (message "Opening latex not too short guide in browser")
+  (start-process "latex-help" "*latex-help*" "xdg-open" my-latex-help-file))
 

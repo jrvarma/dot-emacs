@@ -144,7 +144,7 @@
   (when (and std
              (not my-do-not-wait-for-dropbox)
              (not no-ads))
-    (start-process "dropbox-synced" "dropbox-wait"
+    (start-process "dropbox-synced" "*dropbox-wait*"
                    "call-emacs-after-dropbox-sync"))
   (when jrv-finish-after-dropbox-sync-waiting (after-dropbox-sync)))
 

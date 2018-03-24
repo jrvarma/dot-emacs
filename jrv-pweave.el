@@ -5,6 +5,8 @@
 (defvar ess-noweb-default-code-mode)
 (defvar ess-noweb-doc-mode)
 (defvar ess-noweb-mode-prefix-map)
+(defvar ess-noweb-minor-mode-map)
+(make-variable-buffer-local 'ess-noweb-minor-mode-map)
 
 (declare-function ess-swv-weave "ess-swv")
 (declare-function ess-noweb-mode "ess-noweb-mode")
@@ -12,41 +14,51 @@
 (add-to-list 'auto-mode-alist '("\\.Plw\\'" . Plw-mode))
 (add-to-list 'auto-mode-alist '("\\.pmd\\'" . pmd-mode))
 
+(defun pmd-key-bindings()
+  (interactive)
+  (define-key ess-noweb-minor-mode-map "\M-ns" 'pweave-markdown)
+  (define-key ess-noweb-minor-mode-map "\M-nP" 'pweave-markdown)
+  (define-key ess-noweb-minor-mode-map "\M-nx" 'python-inline))
+
+(defun Plw-key-bindings()
+  (interactive)
+  (define-key ess-noweb-minor-mode-map "\M-ns" 'pweave-tex)
+  (define-key ess-noweb-minor-mode-map "\M-nP" 'ess-swv-PDF)
+  (define-key ess-noweb-minor-mode-map "\M-nx" 'python-inline))
+
 (define-derived-mode Plw-mode ess-noweb-mode "Pweave"
   "Python code chunks in ESS-Noweb" 
   (setq ess-noweb-default-code-mode 'python-mode)
   (setq ess-noweb-doc-mode 'latex-mode)
-  (define-key ess-noweb-mode-prefix-map "s" 'my-weave)
-  (define-key ess-noweb-mode-prefix-map "x" 'pweave-inline)
-)
+  ;; for some reason setting minor mode without delay does not work
+  (run-at-time 1 nil '(lambda() (Plw-key-bindings))))
 
 (define-derived-mode pmd-mode ess-noweb-mode "Pweavemarkdown"
   "Python code chunks in markdown using ESS-Noweb" 
   (setq ess-noweb-default-code-mode 'python-mode)
   (setq ess-noweb-doc-mode 'markdown-mode)
-  (define-key ess-noweb-mode-prefix-map "s" 'my-weave)
-  (define-key ess-noweb-mode-prefix-map "x" 'pweave-inline)
-  (define-key ess-noweb-mode-prefix-map "P" 'markdown-to-pdf)
-)
+  ;; for some reason setting minor mode without delay does not work
+  (run-at-time 1 nil '(lambda() (pmd-key-bindings))))
 
-(defun pweave-inline()
+(defun python-inline()
   "Insert the code for inline python expressions <%=%> and move cursor "
   (interactive)
   (insert "<%=%>")
   (backward-char 2))
 
-(defun my-weave (&optional choose)
-  "If the code-mode is python, run pweave. Else run ess-swv-weave for Sweave/knit
+(defun pweave-markdown (&optional choose)
+  "Pweave markdown file in current buffer
 
-Optional parameter CHOOSE is passed on to pweave or ess-swv-weave.
-"
+If CHOOSE is non-nil prompt for Pweave options, else use '-f markdown'"
   (interactive "P")
-  (cond
-   ((equal ess-noweb-default-code-mode 'python-mode)
-    (pweave
-     (if (equal ess-noweb-doc-mode 'markdown-mode) "markdown" "tex")
-     choose))
-   (t (ess-swv-weave choose))))
+  (pweave "markdown" choose))
+
+(defun pweave-tex (&optional choose)
+  "Pweave latex file in current buffer
+
+If CHOOSE is non-nil prompt for Pweave options, else use '-f markdown'"
+  (interactive "P")
+  (pweave "tex" choose))
 
 (defun pweave (doctype &optional choose)
   "Pweave file in current buffer
@@ -71,3 +83,4 @@ If CHOOSE is non-nil prompt for Pweave options, else use '-f doctype'"
       ((= 0 pwv-status) (message "done")) 
       (t (message "** OOPS: error in Pweave (%d)!" pwv-status)
          (display-buffer py-buf)))))))
+

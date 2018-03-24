@@ -42,7 +42,6 @@
 (require 'jrv-markdown nil my-minimal)         ; markdown (requires jrv-html)
 (require 'jrv-org nil my-minimal)              ; load org mode and its customizations
 (require 'jrv-python-elpy nil my-minimal)      ; python help, send-line/region
-(require 'jrv-pweave nil my-minimal)           ; pweave using ESS and Pweave
 (require 'jrv-cpp nil my-minimal)              ; C++ compilation options
 (require 'jrv-windup-etc nil my-minimal)       ; windup, load-jrv-org, timelog
 (require 'jrv-notmuch nil my-minimal)          ; notmuch configuration
@@ -51,6 +50,7 @@
   (epa-file-enable))                           ; enable it
 (require 'ess-site nil my-minimal)             ; ESS Support for R language
 (require 'ess-rutils nil my-minimal)           ;   ..
+(require 'jrv-pweave nil my-minimal)           ; pweave using ESS and Pweave
 (defvar my-yas-snippets-dir) ; from my-settings
 (when (require 'yasnippet nil my-minimal)      ; yasnippet
   (setq yas-snippet-dirs (list my-yas-snippets-dir)) ; set snippets folder

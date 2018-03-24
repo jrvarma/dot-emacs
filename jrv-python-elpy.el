@@ -44,8 +44,8 @@
   "Launch python help in browser or windows help file"
   (interactive)
   (message "Opening python help in browser")
-  (call-process-shell-command
-   (concat "xdg-open " my-offline-python-help-file)))
+  (start-process "python-help" "*python-help*"
+                 "xdg-open" my-offline-python-help-file))
 
 (add-hook
  'python-mode-hook

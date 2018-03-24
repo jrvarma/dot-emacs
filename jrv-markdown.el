@@ -7,8 +7,16 @@
 (defvar markdown-mode-map)
 (declare-function markdown-export-file-name  "markdown-mode")
 (declare-function markdown  "markdown-mode")
+
+;; use pandoc to process markdown
 (defvar markdown-command)
 (setq markdown-command "pandoc --ascii -f markdown -t html")
+;; in .pmd files, run Pweave first before running pandoc
+(make-variable-buffer-local 'markdown-command)
+(add-hook 'markdown-mode-hook
+          '(lambda ()
+             (when (string-match "\.[pP]md$" (buffer-name))
+               (setq markdown-command "pwv-pandoc"))))
 
 (defun markdown-export-blog ()
   "Export markdown to .blog file"
@@ -33,23 +41,19 @@
         (outbuf (generate-new-buffer "*pdffile*"))
         (outname (markdown-export-file-name ".pdf"))
         (old-markdown-command markdown-command)
-        (pandoc "pandoc -V 'mainfont:Nimbus Roman' --pdf-engine=xelatex -f markdown"))
-    (setq pandoc
-          (if prompt
-              (read-string "Pandoc command: " pandoc nil pandoc)
-            pandoc))
-    (cond
-     ((string-match "\.pmd$" (buffer-name))
-      (let ((mdfile (replace-regexp-in-string "\.pmd" ".md" (buffer-name))))
-        (message "Running pandoc")
-        (shell-command (concat pandoc " -o " outname " " mdfile) outbuf)))
-     (t         
-      (set-buffer buf)
-      (setq markdown-command (concat pandoc " -o " outname))
-      (message "Running pandoc")
-      (markdown (buffer-name outbuf))
-      (message "Pandoc finished")
-      (setq markdown-command old-markdown-command)))
+        (pandoc "pandoc")
+        (pandoc-opt "-V 'mainfont:Nimbus Roman' --pdf-engine=xelatex -f markdown"))
+    (when prompt
+        (setq pandoc-opt
+              (read-string "Pandoc options: " pandoc-opt nil pandoc-opt)))
+    (when (string-match "\.[pP]md$" (buffer-name))
+      (setq pandoc "pwv-pandoc"))
+    (set-buffer buf)
+    (setq markdown-command (concat pandoc " " pandoc-opt " -o " outname))
+    (message "Running pandoc")
+    (markdown (buffer-name outbuf))
+    (message "Pandoc finished")
+    (setq markdown-command old-markdown-command)
     (if (> (buffer-size outbuf) 0)
         (switch-to-buffer outbuf)
       (kill-buffer outbuf)
@@ -70,3 +74,4 @@
     (define-key markdown-mode-map [(control -)] 'html-ndash))
 )
 (add-hook 'markdown-mode-hook  'markdown-key-bindings)
+
