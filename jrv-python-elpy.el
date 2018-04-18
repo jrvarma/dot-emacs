@@ -5,14 +5,16 @@
 ;; related emacs packages (not used) py-autopep8, ein
 ;; python pip packages desired are
 ;;       rope_py3k, jedi, flake8, importmagic, autopep8, yapf
+(defvar python-shell-interpreter)
 (defvar python-shell-interpreter-args)
 
 (declare-function elpy-enable  "elpy")
-(declare-function elpy-use-ipython  "elpy")
+;; (declare-function elpy-use-ipython  "elpy")
 (declare-function flycheck-mode  "flycheck.el")
 
 (elpy-enable)
-(elpy-use-ipython)
+;(elpy-use-ipython)
+(setq python-shell-interpreter "ipython")
 (setq python-shell-interpreter-args "--TerminalInteractiveShell.simple_prompt=True")
 
 (defvar elpy-rpc-backend)
@@ -22,6 +24,9 @@
 (when (require 'flycheck nil t)
   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
   (add-hook 'elpy-mode-hook 'my-flycheck))
+
+(defvar elpy-shell-use-project-root)
+(setq elpy-shell-use-project-root nil)
 
 (defun my-flycheck()
   (unless (string-match (file-name-extension buffer-file-name) "(Plw)|(pmd)$")

@@ -176,6 +176,22 @@
   :type 'string
   :group 'JRVarma)
 
+(defcustom my-email-addresses
+  '(
+    ("jv"  "___@___.___")
+    ("jg"  "___@___.___")
+    ("ji" "___@___.___")
+    )
+  "*email addresses and aliases in order of priority"
+  :type 'list
+  :group 'JRVarma)
+  
+(defcustom my-email-real-name
+  "Prof Jayanth R Varma"
+  "*Real name to use in From: email address"
+  :type 'string
+  :group 'JRVarma)
+
 ;; override many settings when running without internet
 (when my-no-internet 
   (setq my-run-timelog nil)

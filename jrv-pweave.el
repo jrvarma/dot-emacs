@@ -26,6 +26,28 @@
   (define-key ess-noweb-minor-mode-map "\M-nP" 'ess-swv-PDF)
   (define-key ess-noweb-minor-mode-map "\M-nx" 'python-inline))
 
+;; (defvar pmd-minor-mode-map
+;;       (let ((map (make-sparse-keymap)))
+;;         (define-key map (kbd "M-n s") 'pweave-markdown)
+;;         (define-key map (kbd "M-n x") 'python-inline)
+;;         (define-key map (kbd "M-n P") 'pweave-markdown)
+;;         map)
+;;       "Minor mode key map that modifies ess-no-web key bindings for pmd mode")
+
+;; (defvar Plw-minor-mode-map
+;;       (let ((map (make-sparse-keymap)))
+;;         (define-key map (kbd "M-n s") 'pweave-tex)
+;;         (define-key map (kbd "M-n x") 'python-inline)
+;;         (define-key map (kbd "M-n P") 'ess-swv-PDF)
+;;         map)
+;;       "Minor mode key map that modifies ess-no-web key bindings for Plw mode")
+
+;; (define-minor-mode Plw-minor-mode
+;;   "modify ess-no-web key bindings for Plw mode")
+
+;; (define-minor-mode pmd-minor-mode
+;;   "modify ess-no-web key bindings for pmd mode")
+
 (define-derived-mode Plw-mode ess-noweb-mode "Pweave"
   "Python code chunks in ESS-Noweb" 
   (setq ess-noweb-default-code-mode 'python-mode)

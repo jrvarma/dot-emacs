@@ -14,6 +14,7 @@
 (defvar sendmail-program)
 (defvar fill-flowed-display-column)
 (declare-function gnus-alias-use-identity "gnu-alias")
+(declare-function seq-find "seq")
 
 (setq notmuch-search-oldest-first nil)
 (setq mail-signature-file my-email-signature-file) ;; for sendmail
@@ -81,29 +82,37 @@
 ;; Determine identity when message-mode loads
 (add-hook 'message-setup-hook 'gnus-alias-determine-identity)
 ;; set up the identities
-(setq gnus-alias-identity-alist
-      ;; the backquote-comma combination forces evaluation of my-email-signature-file
-      `(("ji" ;; iima identity
-         nil ;; Does not refer to any other identity
-         "Prof Jayanth R Varma <___@___.___> " ;; Sender address
-         nil ;; No organization header
-         nil ;; No extra headers
-         nil ;; No extra body text
-         ,my-email-signature-file)
-        ("jg"  ;; gmail identity
-         nil
-         "Prof Jayanth R Varma <___@___.___> "
-         nil ;; No organization header
-         nil ;; No extra headers
-         nil ;; No extra body text
-         ,my-email-signature-file)))
-;; default identity
-(setq gnus-alias-default-identity "ji")
-;; Define rules to match gmail identity
-(setq gnus-alias-identity-rules
-      '(("jg" ("any" "___@___.___" both) "jg")
-        ;; ("cf" ("any" "chr-fin@iima.ac.in" both) "cf")
+(defun make-identity-alist (x)
+  "Helper function to make gnus-alias-identity-alist
+
+Use (mapcar 'make-identity-alist my-email-addresses)
+to make gnus-alias-identity-alist"
+  (list (elt x 0)    ;; the identity alias
+        nil          ;; Does not refer to any other identity
+        (concat my-email-real-name " <" (elt x 1) "> ")   ;; Sender address
+        nil          ;; No organization header
+        nil          ;; No extra headers
+        nil          ;; No extra body text
+        my-email-signature-file
         ))
+(setq gnus-alias-identity-alist
+      (mapcar 'make-identity-alist my-email-addresses))
+
+;; default identity
+(setq gnus-alias-default-identity "jv")
+;; Define rules to match gmail identity
+(defun make-identity-rules (x)
+  "Helper function to make gnus-alias-identity-rules
+
+Use (mapcar 'make-identity-rules my-email-addresses)
+to make gnus-alias-identity-rules"
+  (list (elt x 0)    ;; the rule name
+        (list "any" (elt x 1)  'both) ;; search for this address in all headers
+        (elt x 0)    ;; if found choose this identity
+        ))
+(setq gnus-alias-identity-rules
+      (mapcar 'make-identity-rules my-email-addresses))
+
 
 
 ;;;;;;;;;;;;; functions 
@@ -111,34 +120,74 @@
 
 (add-hook 'message-mode-hook 'my-message-mode-hook)
 
-;; adapted from http://www.emacswiki.org/cgi-bin/wiki/GnusMSMTP#toc2
+;; core of cg-feed-msmtp adapted from
+;; http://www.emacswiki.org/cgi-bin/wiki/GnusMSMTP#toc2
 ;; Choose account label to feed msmtp -a option based on From header in Message buffer;
 ;; This function must be added to message-send-mail-hook for on-the-fly change of From address
 ;; before sending message since message-send-mail-hook is processed right before sending message.
 (defun cg-feed-msmtp ()
   "Use from address to set smtp sender account"
   (if (message-mail-p)
-      (save-excursion
-        (let* ((from 
-                (save-restriction
-                  (message-narrow-to-headers)
-                  (message-fetch-field "from")))
-               (to
-                (save-restriction
-                  (message-narrow-to-headers)
-                  (message-fetch-field "to")))
-               (iima "___@___.___")
-               (iimahd "___@___.___")
-               (gmail "___@___.___")
-               ;; (chr-fin-old "chr-fin@iimahd.ernet.in")
-               ;; (chr-fin "chr-fin@iima.ac.in")
-               (account 
-                (cond
-                 ((string-match iima from) iima)
-                 ((string-match iimahd from) iima)
-                 ((string-match gmail from) gmail)
-                 )))
-          (setq message-sendmail-extra-arguments (list '"-a" account))))))
+      (let* ((from (my-fetch-header (list "from")))
+             (to (my-fetch-header (list "to" "cc" "bcc")))
+               (account
+                (seq-find
+                 (lambda (x) (string-match (elt x 1) from))
+                 my-email-addresses nil)))
+        (if account
+            (setq message-sendmail-extra-arguments
+                  (list '"-a" (elt account 1)))
+          (error "Invalid sender address %s" from))
+        (check-sender-account-ok from to))))
+
+(defun my-fetch-header (header-list)
+  "Returns all headers in header-list as a single string"
+  (interactive)
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers)
+      (mapconcat (lambda (hdr) (message-fetch-field hdr)) header-list " "))))
+
+(defun confirm-sender-account (msg)
+  "Confirm sender account if it appears inconsistent with to"
+  (setq last-nonmenu-event nil)
+  ;; force a dialog box not mini buffer
+  (when (not (yes-or-no-p (format-message "%s. Confirm (y/n) " msg)))
+    (error "Please change sender address and try again")))
+
+(defvar my-official-email-address
+  (elt (seq-find
+        (lambda (x) (string-match (elt x 0) "ji"))
+        my-email-addresses nil) 1))
+
+(defvar my-official-email-address-domain
+  (elt (split-string my-official-email-address "@") 1))
+
+(defvar my-personal-email-address
+  (elt (seq-find
+        (lambda (x) (string-match (elt x 0) "jg"))
+        my-email-addresses nil) 1))
+
+(defvar my-vacation-email-address
+  (elt (seq-find
+        (lambda (x) (string-match (elt x 0) "jv"))
+        my-email-addresses nil) 1))
+
+(defun check-sender-account-ok (from to)
+  "Apply various checks to ensure sender account consistent with recipient"
+   (when (and (string-match my-official-email-address from)
+              (not (string-match my-official-email-address-domain to)))
+     (confirm-sender-account "From official to non official"))
+   (when (and (not my-on-vacation)
+         (string-match my-vacation-email-address from))
+     (confirm-sender-account "From vacation while not on vacation."))
+   (when (and (string-match my-official-email-address-domain to)
+         (string-match my-personal-email-address from))
+     (confirm-sender-account "From personal to official"))
+   (when (and my-on-vacation
+         (not (string-match my-vacation-email-address from)))
+     (confirm-sender-account "Not from vacation while on vacation")))
+
 
 (defun vwh()
   "View HTML part using vwh" 
@@ -182,14 +231,12 @@
 ;; message-mode key bindings, de-fill, word-wrap, flyspell
 (defun my-message-mode-hook ()
   "Hook to define keys, set wrap, autofill etc in message mode"
-  (define-key notmuch-message-mode-map [(control ?c) (?i)]
+  (define-key notmuch-message-mode-map [(control ?c) (?c)]
     (function
-     (lambda () "Set Identity to iima." (interactive)
-       (gnus-alias-use-identity "ji"))))
-  (define-key notmuch-message-mode-map [(control ?c) (?g)]
-    (function
-     (lambda () "Set Identity to gmail." (interactive)
-       (gnus-alias-use-identity "jg"))))
+     (lambda () "Choose Identity Interactively." (interactive)
+       (gnus-alias-use-identity
+        (ido-completing-read "Choose Identity: "
+                             (mapcar 'car my-email-addresses))))))
   (define-key notmuch-message-mode-map (kbd "M-q") 'de-fill)
   (turn-off-auto-fill)
   (setq
