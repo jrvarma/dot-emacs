@@ -1,0 +1,32 @@
+#!/usr/bin/python
+# mimedown - generate multipart text and HTML MIME message from Markdown input.
+
+import markdown, subprocess, os
+from tempfile import NamedTemporaryFile
+from os.path import realpath, expanduser
+
+with open(realpath(expanduser("~/0/dj/Signature_New.txt")), 'r') as infile:
+    signature = infile.read()
+
+signature_markdown = '\n<pre>\n' + signature + '\n<\pre>\n'
+
+def mimedown(input, output):
+    text = input.read()
+    text = text.replace(signature, signature_markdown)
+    html = markdown.markdown(text, extensions= ['markdown.extensions.extra'], safe_mode=False)
+    html = "<html><head><title></title><body>%s</body></html>" % html
+    print('''<#multipart type=alternative>
+%s
+<#part type=text/html>
+%s
+<#/multipart>
+''' % (text, html), file=output)
+    fh = NamedTemporaryFile(prefix='mimedown',suffix='.html', delete=False)
+    fh.write(html.encode("UTF-8"))
+    fh.close()
+    subprocess.Popen(['xdg-open', fh.name], shell=False, 
+                     stdout=open(os.devnull), stderr=open(os.devnull))
+
+if __name__ == '__main__':
+    import sys
+    mimedown(sys.stdin, sys.stdout)

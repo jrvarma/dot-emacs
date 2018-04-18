@@ -1,0 +1,6 @@
+#!/bin/bash
+infile=`mktemp`
+outfile=`mktemp`
+cat > $infile
+Pweave -f markdown -i noweb -o $outfile $infile > /dev/null 
+pandoc --ascii -f markdown "$@" < $outfile
