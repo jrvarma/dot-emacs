@@ -6,6 +6,8 @@ Like many others, I too share my `init` files in the hope that others would find
 
 My `.emacs` contains more than 1,200 lines of lisp, and has been split into several files in `.emacs.d` for easier maintainability. The modular design also makes it easy to pick and choose what is needed. Take what you like and copy them into your `.emacs` or `init.el`
 
+A couple of shell scripts called from within my init files have been uploaded in the `bin` folder.
+
 ## General customization
 
 * `jrv-basic-customize.el` sets the theme, hides the menu and tool bars, sets the history configuration and other similar stuff
