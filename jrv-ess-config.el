@@ -12,9 +12,8 @@
 (when (require 'jrv-mypaths nil my-minimal)
   (defvar ess-history-directory)
   (defvar jrv-jtemp)
-  (defvar jrv-jdrive)
-  (when (file-exists-p jrv-jdrive) 
-    (setq ess-history-directory (concat jrv-jtemp "/.R/"))))
+  (when jrv-jtemp) 
+    (setq ess-history-directory (concat jrv-jtemp "/.R/")))
 (defvar comint-scroll-to-bottom-on-input)
 (setq comint-scroll-to-bottom-on-input t) ; scroll R window to bottom after each evaluation
 (defvar comint-scroll-show-maximum-output)

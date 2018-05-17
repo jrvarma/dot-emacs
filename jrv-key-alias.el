@@ -5,11 +5,14 @@
 ;; set windmove key bindings using bind-key to override bindings in other modes
 (require 'windmove)
 (require 'bind-key)
-(windmove-default-keybindings 'meta)
-(bind-key* "M-<left>" 'windmove-left)
-(bind-key* "M-<right>" 'windmove-right)
-(bind-key* "M-<up>" 'windmove-up)
-(bind-key* "M-<down>" 'windmove-down)
+(bind-key* "C-M-<left>" 'windmove-left)
+(bind-key* "C-M-<right>" 'windmove-right)
+(bind-key* "C-M-<up>" 'windmove-up)
+(bind-key* "C-M-<down>" 'windmove-down)
+(eval-when-compile 
+  (require 'package)
+  (package-initialize))
+(require 'jrv-key-chord)             ;; key-chord alternatives for function keys
 
 ;; always delete whole line
 (setq kill-whole-line 'always) 
@@ -17,8 +20,9 @@
 (if (fboundp 'pending-delete-mode)
     (pending-delete-mode 1))
 ;; cut paste into clipboard
-(setq select-enable-clipboard t)
-(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+(when (display-graphic-p)
+  (setq select-enable-clipboard t)
+  (setq interprogram-paste-function 'x-cut-buffer-or-selection-value))
 
 ;; shifted keys for functions on other window
 ;; eg, [(control x) (shift b)] does on other window
@@ -43,8 +47,17 @@
 
 ;; Since I often press C-z by mistake I initially made it do nothing
 ;; (global-unset-key [(control z)])
-;; Then put it to good use
-(global-set-key [(control z)] 'delete-other-windows)
+;; Then put it to good alternative use except in termux
+(require 'my-settings)
+(defvar my-phone)
+(unless my-phone
+  (global-set-key [(control z)] 'delete-other-windows))
+
+;; org-mode keys
+;; (global-set-key [(f9)] 'clock-out-and-pause-timer)
+(define-key global-map "\C-cc" 'org-capture)
+(define-key global-map "\C-ca" 'org-agenda)
+
 
 ;;; Abbreviations for common commands
 ;; space followed by letter (a/b/c/h/l/m/s)

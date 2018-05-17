@@ -3,7 +3,9 @@
                           
 (require 'dired-sort-map)               ; s s, s x, s t or s n to sort by Size, eXtension, Time or Name
 (require 'my-settings)
+(require 'dired-x)                             ; extensions to dired
 (defvar my-minimal)
+(require 'dired+ nil my-minimal)               ; extensions to dired
 (require 'jrv-dired-compare nil my-minimal)    ; compare two directories by time
 (require 'jrv-shell-commands nil my-minimal)   ; execute programs, launch files in associated programs, send file to jrv-hdrive
 

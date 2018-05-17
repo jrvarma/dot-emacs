@@ -13,6 +13,7 @@
 ;; This is useful for remote paths accessed using tramp
 ;; For example, the file could contain a line like /smb:192.168.240.1:/junk/
 
+
 (defun real-path(x)
   "Translate shortpath (symlink in ~/0) to the full path of symlink target"
   (interactive)
@@ -21,9 +22,11 @@
           (shell-command-to-string
            (concat "realpath ~/0/" x))))
         ((string-empty-p x) "")
-        ((string-trim-right
+        ((file-exists-p (concat "~/0/" x))
+         (string-trim-right
          (shell-command-to-string
-          (concat "cat ~/0/" x))))))
+          (concat "cat ~/0/" x))))
+        (nil)))
 
 (defun get-real-path()
   "Prompt for shortpath (symlink in ~/0) and return the full path of symlink target"

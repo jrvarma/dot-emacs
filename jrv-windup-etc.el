@@ -6,7 +6,6 @@
 (provide 'jrv-windup-etc)
 (require 'jrv-mypaths)
 (require 'my-settings)
-(defvar jrv-hdrive)     ; from jrv-mypaths
 (defvar my-windup-time) ; from my-settings
 (declare-function dired-maybe-insert-subdir "dired.el")
 (declare-function my-org "jrv-org.el")

@@ -41,6 +41,8 @@
 (defun my-org()
   "Open my org file."
   (interactive)
+  (if (not h-org-jrv-file)
+      (error "h-org-jrv-file not set"))
   (find-file h-org-jrv-file)
   (setq my-org-buffer (current-buffer))
   (when my-timelog-categories-file
@@ -100,6 +102,8 @@
 (defvar org-timer-start-time)
 (defun clock-in-and-resume-timer ()
   (interactive) 
+  (if (not h-org-jrv-file)
+      (error "h-org-jrv-file not set"))
   (find-file h-org-jrv-file)        ; shift to org file
   (org-clock-in)                    ; clock in 
   (cond                             ; resume timer
@@ -117,12 +121,15 @@
     (run-hooks 'org-timer-continue-hook)
     (message "Timer continues at %s" (org-timer-value-string)))))
 
-(global-set-key [(f9)] 'clock-out-and-pause-timer)
-
-(global-set-key [(shift f9)] 'clock-in-and-resume-timer)
+(add-hook 'org-mode-hook
+          (lambda () (define-key org-mode-map [(control c) (control x) ?\t]
+                       'clock-in-and-resume-timer)))
 
 ;; org capture
 (defvar org-default-notes-file)
 (setq org-default-notes-file h-org-jrv-file)
-(define-key global-map "\C-cc" 'org-capture)
 (require 'org-notmuch)
+
+(defvar org-catch-invisible-edits)
+(setq org-catch-invisible-edits 'smart)
+

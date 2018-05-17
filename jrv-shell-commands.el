@@ -5,6 +5,8 @@
 (defun dired-dos2unix ()
   "Run dos2unix -k on current file in dired buffer"
   (interactive)
+  (if (not (file-executable-p "dos2unix"))
+      (error "Command dos2unix not available"))
   (dired-do-async-shell-command  "dos2unix -k " nil (dired-get-marked-files)))
 
 (defun dired-new-file (fname)
@@ -30,6 +32,8 @@ modified from http://omniorthogonal.blogspot.in/2008/05/useful-emacs-dired-launc
 (defun dired-execute-file-in-shell ()
   "Execute in terminal: The current file in dired buffer is executed"
   (interactive)
+  (if (not (file-executable-p "terminator"))
+      (error "Command terminator not available"))
   (when (y-or-n-p (format "%s %s" "Execute in terminal " (dired-get-filename)))
     (start-process "*exec-in-shell*"  nil
                    "terminator" "-x" "bash" "-c" (dired-get-filename))))
@@ -38,6 +42,8 @@ modified from http://omniorthogonal.blogspot.in/2008/05/useful-emacs-dired-launc
   "Execute file in terminal instead of directly as in shell-command
 This allows the executable file to prompt for and respond to user input"
   (interactive "fExecute file in terminal: ")
+  (if (not (file-executable-p "terminator"))
+      (error "Command terminator not available"))
   (when (y-or-n-p (format "%s %s" "Execute " file))
     (async-shell-command (format "%s %s" "terminator -x bash -c"  file))))
 
@@ -45,8 +51,13 @@ This allows the executable file to prompt for and respond to user input"
 (defun send-buffer-file-to-h ()
   "Send file in the buffer to hdrive. Prompts if buffer needs saving."
   (interactive)
+  (if (not (file-executable-p "2h"))
+      (error "Command 2h not available"))
   (if (buffer-modified-p) 
       (message "Please save file first. Buffer has been modified")
-    (message (concat "2h " (file-name-nondirectory (buffer-file-name)) "  Please wait ..."))
-    (message (shell-command-to-string (concat "2h " (file-name-nondirectory (buffer-file-name)))))))
+    (message (concat "2h "
+                     (file-name-nondirectory (buffer-file-name))
+                     "  Please wait ..."))
+    (message (shell-command-to-string
+              (concat "2h " (file-name-nondirectory (buffer-file-name)))))))
 

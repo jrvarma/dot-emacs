@@ -11,6 +11,9 @@
 (defvar my-minimal (not (string-match-p "JRV" my-hostname)))
 (defvar my-home-pc (string-equal "JRVLAPTOP" my-hostname))
 (defvar my-office-pc (string-equal "JRVARMAPC" my-hostname))
+;; hostname in my phone (GNU Root Debian and Termux) return localhost
+;; rather than rely on this, I use a file to identify the phone
+(defvar my-phone (file-exists-p "~/this-is-my-phone"))
 (defvar my-no-internet (file-exists-p "~/no-internet"))
 (defvar my-on-vacation (file-exists-p "~/on-vacation"))
 

@@ -29,7 +29,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (gnus-alias go-mode indent-tools esup counsel bind-key web-mode-edit-element lua-mode tool-bar+ py-autopep8 polymode outline-magic markdown-mode+ magit latex-pretty-symbols flycheck ess-smart-underscore ess-smart-equals ess-R-object-popup ess-R-data-view escreen elpy dired-sort-menu+ dired+ company-quickhelp company-auctex auto-complete-c-headers apel))))
+    (ido-select-window which-key key-chord god-mode gnus-alias go-mode indent-tools esup counsel bind-key web-mode-edit-element lua-mode tool-bar+ py-autopep8 polymode outline-magic markdown-mode+ magit latex-pretty-symbols flycheck ess-smart-underscore ess-smart-equals ess-R-object-popup ess-R-data-view escreen elpy dired-sort-menu+ dired+ company-quickhelp company-auctex auto-complete-c-headers apel))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

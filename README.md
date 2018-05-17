@@ -21,6 +21,10 @@ A couple of shell scripts called from within my init files have been uploaded in
     - This is fairly trivial stuff
 * `jrv-key-alias.el` defines various keybindings and aliases
     - Key bindings preferences vary a lot from individual to individual and you may not like any of the bindings here.
+* `jrv-key-chord.el` defines key chord bindings for some very frequent commands
+    - Key bindings preferences vary a lot from individual to individual and you may not like any of the bindings here.
+* `jrv-gof.el` defines my god-mode setup
+    - This is a bit non standard because I do sometimes use emacs over ssh and the standard binding of the `escape` key is not feasible in that scenario.
 
 ## `R`, `Python` and `LaTex`
 

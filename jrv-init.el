@@ -33,8 +33,6 @@
 (require 'jrv-text-functions nil my-minimal)   ; spell, wc, proper-case etc
 (require 'jrv-ibuffer nil my-minimal)          ; ibuffer configuration
 (require 'jrv-auctex-config nil my-minimal)    ; Auctex configuration
-(require 'dired-x nil my-minimal)              ; extensions to dired
-(require 'dired+ nil my-minimal)               ; extensions to dired
 (require 'jrv-dired-config nil my-minimal)     ; dired-compare and shell-commands
 (require 'jrv-ess-config nil my-minimal)       ; ess and R configuration
 (require 'jrv-git nil my-minimal)              ; n-days-old and local-git-copy
@@ -60,3 +58,4 @@
   (declare-function hfyview-add-to-files-menu "hfyview")
   (hfyview-add-to-files-menu))                 ; add this to file menu
 (require 'jrv-finish nil my-minimal)           ; open files, set up windows etc
+(require 'jrv-god nil my-minimal)              ; god-mode mainly in mobiles

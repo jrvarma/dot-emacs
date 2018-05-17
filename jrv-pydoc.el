@@ -3,6 +3,7 @@
 ;; produces numpy style docstring
 
 (provide 'jrv-pydoc)
+(declare-function string-join "subr-x")
 (defun chomp (str)
   "Chomp leading and tailing whitespace from STR."
   (let ((s (if (symbolp str) (symbol-name str) str)))
@@ -22,7 +23,8 @@
 (defun python-insert-docstring()
   "Insert docstring for current function in numpy style"
   (interactive)
-  (let* ((s (thing-at-point 'sentence))
+  (let* ((s0 (thing-at-point 'sentence))
+         (s (string-join (split-string s0 "\n") " "))
          (p (get-parameters s))
          (params (split-string p "[?\,?\(?\)?\ ]"))
          (S (thing-at-point 'line))

@@ -4,6 +4,19 @@
 ;; set the theme
 (defvar my-theme-name) ; from my-settings
 (load-theme (intern my-theme-name))
+
+(defvar limited-color-terminal nil)
+(defun handle-color-capability (frame) 
+  (unless (> (length (defined-colors frame)) 255)
+    (setq limited-color-terminal t)
+    (message "Setting mode colors for color limited terminal")
+    (set-face-foreground 'mode-line "blue")
+    (set-face-foreground 'mode-line-inactive "white")
+    (set-face-background 'mode-line "white")
+    (set-face-background 'mode-line-inactive "black")))
+
+(add-hook 'after-make-frame-functions 'handle-color-capability)
+
 ;; set cursor color
 ;; the backquote-comma combination forces evaluation of my-cursor-color
 (add-to-list 'default-frame-alist `(cursor-color . ,my-cursor-color))
@@ -29,10 +42,15 @@
 (tool-bar-mode -1)  ;; switch tool bar off
 ;;; Protect scratch and Messages buffers from accidental deletion
 (require 'keep-buffers)                     ;; Load the package.
-(keep-buffers-protect-buffer "*scratch*")   ;; Protect the *scratch* buffer
-(keep-buffers-protect-buffer "*Messages*")  ;; Protect the *Messages* buffer
-(keep-buffers-erase-on-kill nil)            ;; Do not erase buffers on kill
+(keep-buffers-mode 1)
+;;(keep-buffers-protect-buffer "*scratch*")   ;; Protect the *scratch* buffer
+;;(keep-buffers-protect-buffer "*Messages*")  ;; Protect the *Messages* buffer
+;;(keep-buffers-erase-on-kill nil)            ;; Do not erase buffers on kill
 ;; make message buffer bigger
+(defvar keep-buffers-protected-alist)
+(setq keep-buffers-protected-alist
+  '(("\\`\\*scratch\\*\\'" . nil)
+    ("\\`\\*Messages\\*\\'" . nil)))
 (setq message-log-max 2000)
 ;;; History, recent files and backups
 ;; History
