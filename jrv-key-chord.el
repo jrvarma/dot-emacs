@@ -14,8 +14,21 @@
 (declare-function key-chord-define-global "key-chord")
 (key-chord-define-global "qq" 'ido-switch-buffer)
 (key-chord-define-global "QQ" 'switch-buffer-other-window)
-(key-chord-define-global "q1" 'get-real-path)
+(key-chord-define-global "Q!" 'get-real-path)
 (key-chord-define-global "ww" 'ido-select-window)
+
+(declare-function read-file-name "minibuffer")
+(declare-function confirm-nonexistent-file-or-buffer "files")
+(declare-function get-real-path "jrv-mypaths")
+(defun jrv-find-file-real-path ()
+  (interactive)
+  (let* ((path (get-real-path t))
+         (dir (file-name-directory path))
+         (file (or (file-name-nondirectory path) "")))
+    (message "%s    %s" dir file)
+    (find-file
+     (read-file-name "Find file: " dir nil (confirm-nonexistent-file-or-buffer) file))))
+(key-chord-define-global "q1" 'jrv-find-file-real-path)
 
 (defvar key-chord-mode)
 (defun toggle-key-chord-mode()

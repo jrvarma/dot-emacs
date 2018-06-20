@@ -1,6 +1,7 @@
 (provide 'jrv-notmuch)
 (require 'notmuch)
 (require 'my-settings)
+(require 'seq)
 (eval-when-compile
   (require 'my-settings)
   (require 'notmuch)
@@ -82,6 +83,8 @@
 ;; Determine identity when message-mode loads
 (add-hook 'message-setup-hook 'gnus-alias-determine-identity)
 ;; set up the identities
+(defvar my-email-real-name)
+(defvar my-email-addresses)
 (defun make-identity-alist (x)
   "Helper function to make gnus-alias-identity-alist
 

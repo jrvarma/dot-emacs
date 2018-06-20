@@ -56,7 +56,11 @@
 ;; org-mode keys
 ;; (global-set-key [(f9)] 'clock-out-and-pause-timer)
 (define-key global-map "\C-cc" 'org-capture)
-(define-key global-map "\C-ca" 'org-agenda)
+(define-key global-map "\C-cA" 'org-agenda)
+(define-key global-map "\C-ca" 'org-agenda-list)
+(define-key global-map "\C-cz"  
+  (lambda () (interactive) (setq current-prefix-arg '(4))
+    (call-interactively 'clock-in-and-resume-timer)))
 
 
 ;;; Abbreviations for common commands

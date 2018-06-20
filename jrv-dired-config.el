@@ -10,7 +10,7 @@
 (require 'jrv-shell-commands nil my-minimal)   ; execute programs, launch files in associated programs, send file to jrv-hdrive
 
 (setq dired-dwim-target t)              ; default to other dired window for copy and compare              
-
+(setq dired-recursive-copies 'always)
 (defun my-dired-switches (unset)
   "Set or (with prefix argument unset) dired listing switches"
   (interactive "P")

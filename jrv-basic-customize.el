@@ -147,3 +147,7 @@
             (require 'outline-magic)
             (define-key outline-minor-mode-map [(C-tab)] 'outline-cycle)
             (local-set-key [(control ?c) (control ? )] outline-mode-prefix-map)))
+
+;; use pdf-tools instead of docview for pdf files
+(declare-function pdf-tools-install "pdf-tools")
+(pdf-tools-install)

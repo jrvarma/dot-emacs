@@ -50,12 +50,12 @@
 
 ;; buffer visibility and protection
 
-(defcustom my-dont-kill-buffers "\\*\\(scratch\\|Messages\\|notmuch\\)"
+(defcustom my-dont-kill-buffers "\\*\\(scratch\\|Messages\\|notmuch\\|Org\\)"
   "*regex for buffers not to be killed by kill-star-buffers (see jrv-buffer-functions.el)"
   :type 'string
   :group 'JRVarma)
 
-(defcustom my-buffers-on-all-screens "\\*\\(scratch\\|Messages\\)"
+(defcustom my-buffers-on-all-screens "\\*\\(scratch\\|Messages\\|.*Agenda\\)"
   "*regex for buffers to be shown on both standard and notmuch screens (see jrv-buffer-functions.el)"
   :type 'string
   :group 'JRVarma)
@@ -99,13 +99,23 @@
   :type 'string
   :group 'JRVarma)
 
-(defcustom my-do-not-wait-for-dropbox my-on-vacation
+(defcustom my-do-not-wait-for-dropbox t
   "*Whether to open my-org file without waiting for dropbox sync to complete (see jrv-finish.el)."
   :type 'boolean
   :group 'JRVarma)
 
-(defcustom my-open-org-file (not my-minimal)
+(defcustom my-open-org-file t
   "*Whether to open my-org-file  at startup (see jrv-finish.el)."
+  :type 'boolean
+  :group 'JRVarma)
+
+(defcustom my-encrypt-org-files nil
+  "*Whether to encrypt my org files using gpg"
+  :type 'boolean
+  :group 'JRVarma)
+
+(defcustom my-local-git-copy-org-files nil
+  "*Whether to run local-git-copy on my org-files in jrv-finish"
   :type 'boolean
   :group 'JRVarma)
 
@@ -122,10 +132,10 @@
   :type 'string
   :group 'JRVarma)
 
-(defcustom my-timelog-categories-file
-  (if my-office-pc
-      (file-truename "~/.emacs.d/site-lisp/jrv/timelog-categories")
-    nil)
+(defcustom my-timelog-categories-file nil
+  ;; (if my-office-pc
+  ;;     (file-truename "~/.emacs.d/site-lisp/jrv/timelog-categories")
+  ;;   nil)
   "*If non nil file from which to insert timelog categories into my-org-file at startup (see jrv-org.el)."
   :type 'string
   :group 'JRVarma)

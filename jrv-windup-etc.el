@@ -40,14 +40,17 @@
   (interactive)
   (cancel-function-timers 'windup))
 
+(defvar h-time) ; from my-paths
+(defvar j-time) ; from my-paths
 (defun timelog ()
   "run timelog.R"
   (interactive)
-  (progn
+  (let ((jrv-htimelog (concat h-time "/" "timelog.csv.gpg"))
+        (jrv-jtimelog (concat j-time "/" "timelog.csv"))
+        (jrv-jtimelogR (concat j-time "/" "timelog.R")))
     (find-file jrv-htimelog)
     (write-region nil nil jrv-jtimelog)
     (kill-buffer "timelog.csv.gpg")
     (R)
-    (ess-eval-linewise (concat "source('" jrv-jtimelogR "')"))
-))
+    (ess-eval-linewise (concat "source('" jrv-jtimelogR "')"))))
 

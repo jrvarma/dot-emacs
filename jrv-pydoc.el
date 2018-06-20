@@ -11,7 +11,7 @@
      "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
 (defun get-function-definition(sentence)
   "Get current function definition"
-  (if (string-match "def.*(.*):" sentence)
+  (if (string-match "def.*?(.*?):" sentence)
       (match-string 0 sentence)))
 (defun get-parameters(sentence)
   "Get parameters in current function definition"

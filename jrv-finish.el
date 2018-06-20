@@ -17,6 +17,8 @@
 ;;    emacsclient --eval "(after-dropbox-sync)"             ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (provide 'jrv-finish)
+(eval-when-compile
+  (require 'my-settings))
 (require 'jrv-org) ;; needed for my-org 
 (require 'jrv-git) ;; needed for local-git-copy
 (require 'jrv-notmuch)          ; notmuch configuration
@@ -53,12 +55,13 @@
 (defvar jrv-finish-startup-complete nil)
 (defvar jrv-finish-after-dropbox-sync-waiting nil)
 
-
 (defun local-git-copies()
   (interactive)
-  (local-git-copy jrv-jtimelog jrv-htimelog 3)
-  (local-git-copy j-org-jrv-arch h-org-jrv-arch 3)
-  (local-git-copy j-org-jrv-file h-org-jrv-file 3))
+  (local-git-copy-filelist j-time h-time (list "timelog.csv.gpg") 3)
+  (when my-local-git-copy-org-files
+    (local-git-copy-filelist j-org h-org
+                             (cons jrv-org-arch-file jrv-org-target-files)
+                             3)))
 
 (defun split-window-maybe()
   (when (and my-split-window-at-startup (> (window-total-width) 20))
@@ -86,7 +89,10 @@
 
 (declare-function notmuch-tree "notmuch-tree")
 (defun my-mail-windows()
-    (notmuch-tree "tag:unread"))
+  (let ((ntu-buffer (get-buffer "*notmuch-tree-tag:unread*")))
+    (if ntu-buffer
+        (with-current-buffer ntu-buffer (notmuch-refresh-this-buffer))
+      (notmuch-tree "tag:unread"))))
 
 (defun after-dropbox-sync()
   "rerun my-std-windows after dropbox synced"

@@ -58,4 +58,6 @@
   (declare-function hfyview-add-to-files-menu "hfyview")
   (hfyview-add-to-files-menu))                 ; add this to file menu
 (require 'jrv-finish nil my-minimal)           ; open files, set up windows etc
-(require 'jrv-god nil my-minimal)              ; god-mode mainly in mobiles
+(require 'jrv-god nil my-minimal)              ; god-mode 
+(when my-phone
+  (require 'jrv-gpg-only-in-phone.el))         ; pinentryin emacs only in phone

@@ -51,7 +51,7 @@ This allows the executable file to prompt for and respond to user input"
 (defun send-buffer-file-to-h ()
   "Send file in the buffer to hdrive. Prompts if buffer needs saving."
   (interactive)
-  (if (not (file-executable-p "2h"))
+  (if (not (executable-find "2h"))
       (error "Command 2h not available"))
   (if (buffer-modified-p) 
       (message "Please save file first. Buffer has been modified")

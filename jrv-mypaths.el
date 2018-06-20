@@ -28,24 +28,28 @@
           (concat "cat ~/0/" x))))
         (nil)))
 
-(defun get-real-path()
+(defun get-real-path(&optional noprint)
   "Prompt for shortpath (symlink in ~/0) and return the full path of symlink target"
   (interactive)
   (let* ((j-paths (split-string (shell-command-to-string "ls -1a ~/0") "\n"))
          (path (real-path (completing-read "Enter shortpath: " j-paths nil t))))
-    (insert path)
     (when (and
            (not (string-prefix-p "/smb:" path))
            (not (string-empty-p path))
            (file-directory-p path))
-      (insert "/"))))
+      (setq path (concat path "/")))
+    (unless noprint (insert path))
+    path))
 
 ;; the symlinks in ~/0 are also used to set various variables
 ;; that refer to commonly used files and folders (these are also used in various functions)
 (mapc (lambda(x) (set (intern x) (real-path x)))
-        (list "jrv-htimelog" "jrv-jtimelog" "jrv-jtimelogR"
-              "j-org-jrv-arch" "j-org-jrv-file"
-              "h-org-jrv-arch" "h-org-jrv-file"))
+        ;; (list "jrv-htimelog" "jrv-jtimelog" "jrv-jtimelogR"
+        ;;       "j-org-jrv-arch" "j-org-jrv-file"
+        ;;       "h-org-jrv-arch" "h-org-jrv-file"
+        ;;       "h-org-someday" "j-org-someday"
+        ;;       "h-org-P" "j-org-P"))
+        (list "h-time" "j-time" "j-org" "h-org"))
 (set (intern "jrv-jtemp") (real-path "t"))
 (set (intern "jrv-jdrive") (real-path "j"))
 (set (intern "jrv-hdrive") (real-path "h"))
