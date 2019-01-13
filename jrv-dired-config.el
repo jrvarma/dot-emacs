@@ -40,7 +40,7 @@
  (define-key dired-mode-map [?W] 'dired-copy-filename-with-backslash-as-kill) ; Insert filename with backslash/slash
  (define-key dired-mode-map [?2] 'dired-dos2unix) ; Run dos2unix on selected files
  (define-key dired-mode-map [?c] 'dired-new-file) ; Create new file in new directory
- (define-key dired-mode-map [?`] 'dired-revert-buffer-clean-slate) ; revert dired buffer without subdirs, marks etc
+ (define-key dired-mode-map [?\\] 'dired-revert-buffer-clean-slate) ; revert dired buffer without subdirs, marks etc
 ))
 
 ;; functions for dired key bindings (see also jrv-shell-commands.el)
@@ -65,7 +65,11 @@
 (defvar dired-guess-shell-alist-user)
 (setq dired-guess-shell-alist-user
       '(("\\.py\\'" "python")
-        ("\\.pdf\\'" "evince" "xournal" "okular")))
+       ("\\.xlsx?\\'" "my-nohup libreoffice")
+       ("\\.docx?\\'" "my-nohup libreoffice")
+       ("\\.ipynb?\\'" "jupyter-notebook" "ipnb2md.py" "ipnb2pdf")
+       ("\\.md?\\'" "md2ipnb.py" "md2beamer")
+       ("\\.pdf\\'" "evince" "xournal" "gimagereader-gtk" "okular")))
 (defun dired-revert-buffer-clean-slate ()
   (interactive)
   (let ((this-dir dired-directory))

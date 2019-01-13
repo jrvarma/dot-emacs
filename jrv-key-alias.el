@@ -3,16 +3,20 @@
 (provide 'jrv-key-alias)
 
 ;; set windmove key bindings using bind-key to override bindings in other modes
-(require 'windmove)
-(require 'bind-key)
-(bind-key* "C-M-<left>" 'windmove-left)
-(bind-key* "C-M-<right>" 'windmove-right)
-(bind-key* "C-M-<up>" 'windmove-up)
-(bind-key* "C-M-<down>" 'windmove-down)
+;; (require 'windmove)
+;; (require 'bind-key)
+;; (bind-key* "C-M-<left>" 'windmove-left)
+;; (bind-key* "C-M-<right>" 'windmove-right)
+;; (bind-key* "C-M-<up>" 'windmove-up)
+;; (bind-key* "C-M-<down>" 'windmove-down)
 (eval-when-compile 
   (require 'package)
   (package-initialize))
-(require 'jrv-key-chord)             ;; key-chord alternatives for function keys
+
+(require 'my-settings)
+(defvar my-require-key-chord)       ; from my-settings
+(when my-require-key-chord
+  (require 'jrv-key-chord))         ;; key-chord alternatives for function keys
 
 ;; always delete whole line
 (setq kill-whole-line 'always) 
@@ -54,14 +58,20 @@
   (global-set-key [(control z)] 'delete-other-windows))
 
 ;; org-mode keys
-;; (global-set-key [(f9)] 'clock-out-and-pause-timer)
+(declare-function org-clock-in "org-clock")
 (define-key global-map "\C-cc" 'org-capture)
 (define-key global-map "\C-cA" 'org-agenda)
-(define-key global-map "\C-ca" 'org-agenda-list)
+(define-key global-map "\C-ca" (lambda (&optional arg)
+                                 (interactive "P")(org-agenda arg "a")))
 (define-key global-map "\C-cz"  
-  (lambda () (interactive) (setq current-prefix-arg '(4))
-    (call-interactively 'clock-in-and-resume-timer)))
+  (lambda () (interactive) (org-clock-in '(4))))
 
+;; On my computer, I want C-x C-c to kill daemon also
+;; By default C-x C-c runs save-buffers-kill-terminal which does not kill daemon
+;; The kill-emacs command does not offer to save files, so we use save-buffers-kill-emacs
+;; The old binding save-buffers-kill-terminal is later aliased to 1k below
+(unless my-phone
+  (define-key global-map "\C-x\C-c" 'save-buffers-kill-emacs))
 
 ;;; Abbreviations for common commands
 ;; space followed by letter (a/b/c/h/l/m/s)
@@ -88,4 +98,37 @@
 
 (defalias '\ \; 'mylaunch)
 (defalias '\ g 'magit-status)
+
+;; We have rebound C-x C-c to save-buffers-kill-emacs.
+;; The original binding save-buffers-kill-terminal is now aliased to 1k
+(defalias '1k 'save-buffers-kill-terminal)
+
+(defvar jrv/frequent-keys)
+(setq jrv/frequent-keys
+      '(
+        ("b" . ido-switch-buffer)
+        ("B" . switch-buffer-other-window)
+        ("c" . quick-calc)
+        ("f" . find-file)
+        ("g" . jrv-find-file-real-path)
+        ("i" . get-real-path)
+        ;; ido uses remap key to change all key bindings of kill-buffer to use ido-kill-buffer
+        ;; if we want to bind a key to the original kill-buffer, we have to wrap it inside a function
+        ("k" . (lambda () (interactive) (kill-buffer)))
+        ("K" . kill-buffer-other-window)
+        ("m" . make-frame)
+        ("s" . save-buffer)
+        ("w" . ido-select-window)
+        ("`" . self-insert-command)))
+
+;; (defvar jrv/backquote-map)
+;; (setq jrv/backquote-map (make-sparse-keymap))
+;; (mapc
+;;  (lambda (pair) (define-key jrv/backquote-map (kbd (car pair)) (cdr pair)))
+;;  jrv/frequent-keys)
+;; (define-key global-map "`" jrv/backquote-map)
+
+(mapc
+ (lambda (pair) (define-key global-map (kbd (concat "ESC M-" (car pair))) (cdr pair)))
+ jrv/frequent-keys)
 

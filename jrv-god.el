@@ -5,6 +5,7 @@
 (eval-when-compile 
   (require 'package)
   (package-initialize))
+(require 'bind-key)
 
 (defvar god-exempt-major-modes)
 (defvar god-exempt-predicates)

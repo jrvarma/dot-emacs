@@ -9,11 +9,24 @@
   (package-initialize)
 )
 
+;; keep customizations in separate file
+(setq custom-file "~/.emacs.d/site-lisp/jrv/jrv-custom.el")
+(load custom-file)
+
 (require 'package)
 (package-initialize)
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                         ;; ("marmalade" . "http://marmalade-repo.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")))
+(setq package-archives
+      '(("GNU ELPA"     . "https://elpa.gnu.org/packages/")
+        ("MELPA Stable" . "http://stable.melpa.org/packages/")
+        ("MELPA"        . "http://melpa.org/packages/"))
+      package-archive-priorities
+      '(("MELPA Stable" . 10)
+        ("GNU ELPA"     . 5)
+        ("MELPA"        . 0)))
+;; (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
+;;                          ;; ("marmalade" . "http://marmalade-repo.org/packages/")
+;;                          ("melpa-stable" . "https://stable.melpa.org/packages/")))
+;;                          ("melpa" . "http://melpa.milkbox.net/packages/")))
 
 (require 'my-settings)                         ; lots of things can be customized here
 (defvar my-minimal)                            ; from my-settings
@@ -47,7 +60,7 @@
 (when (require 'epa nil my-minimal)            ; gpg encryption and decryption
   (epa-file-enable))                           ; enable it
 (require 'ess-site nil my-minimal)             ; ESS Support for R language
-(require 'ess-rutils nil my-minimal)           ;   ..
+;; (require 'ess-rutils nil my-minimal)           ;   ..
 (require 'jrv-pweave nil my-minimal)           ; pweave using ESS and Pweave
 (defvar my-yas-snippets-dir) ; from my-settings
 (when (require 'yasnippet nil my-minimal)      ; yasnippet
@@ -58,6 +71,8 @@
   (declare-function hfyview-add-to-files-menu "hfyview")
   (hfyview-add-to-files-menu))                 ; add this to file menu
 (require 'jrv-finish nil my-minimal)           ; open files, set up windows etc
-(require 'jrv-god nil my-minimal)              ; god-mode 
-(when my-phone
-  (require 'jrv-gpg-only-in-phone.el))         ; pinentryin emacs only in phone
+(defvar my-require-god-mode) ; from my-settings
+(when my-require-god-mode
+  (require 'jrv-god nil my-minimal))           ; god-mode 
+;; (when my-phone
+;;   (require 'jrv-gpg-only-in-phone.el))         ; pinentryin emacs only in phone

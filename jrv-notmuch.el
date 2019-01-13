@@ -38,6 +38,7 @@
 (mailcap-parse-mailcaps)
 
 (setq mm-text-html-renderer 'w3m)
+(setq notmuch-multipart/alternative-discouraged '("text/plain" "text/html"))
 
 (setq message-auto-save-directory my-message-auto-save-directory)
 (setq mm-default-directory my-mm-default-directory)
@@ -148,7 +149,7 @@ to make gnus-alias-identity-rules"
   (interactive)
   (save-excursion
     (save-restriction
-      (message-narrow-to-headers)
+      (message-narrow-to-headers-or-head)
       (mapconcat (lambda (hdr) (message-fetch-field hdr)) header-list " "))))
 
 (defun confirm-sender-account (msg)

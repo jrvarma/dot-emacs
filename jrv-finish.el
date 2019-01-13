@@ -29,7 +29,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; rest of this file contains only function defuns   
-;; after-dropbox-sync and run-jrv-finish are
+;; after-cloud-sync and run-jrv-finish are
 ;; intended to be run using emacsclient --eval
 ;; other functions are helper functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -40,7 +40,7 @@
 (defvar my-open-org-file)           ; from my-settings
 (defvar my-split-window-at-startup) ; from my-settings
 (defvar my-no-internet)             ; from my-settings
-(defvar my-do-not-wait-for-dropbox) ; from my-settings
+(defvar my-do-not-wait-for-cloud) ; from my-settings
 
 (defvar jrv-jtimelog)   ; from jrv-mypaths
 (defvar jrv-htimelog)   ; from jrv-mypaths
@@ -53,7 +53,7 @@
 (defvar jrv-finish-temp-buffer nil)
 (defvar jrv-finish-org-buffer nil)
 (defvar jrv-finish-startup-complete nil)
-(defvar jrv-finish-after-dropbox-sync-waiting nil)
+(defvar jrv-finish-after-cloud-sync-waiting nil)
 
 (defun local-git-copies()
   (interactive)
@@ -74,7 +74,7 @@
   "Show temp (with incoming expanded). If jrv-startup-complete show org-jrv-gpg"
   (interactive)
   (when (and my-open-org-file
-             (or my-do-not-wait-for-dropbox jrv-finish-startup-complete))
+             (or my-do-not-wait-for-cloud jrv-finish-startup-complete))
     (my-org)
     (setq jrv-finish-org-buffer (current-buffer)))
   (when (file-exists-p jrv-jtemp) 
@@ -94,24 +94,24 @@
         (with-current-buffer ntu-buffer (notmuch-refresh-this-buffer))
       (notmuch-tree "tag:unread"))))
 
-(defun after-dropbox-sync()
-  "rerun my-std-windows after dropbox synced"
+(defun after-cloud-sync()
+  "rerun my-std-windows after cloud synced"
   ;; run by run-jrv-finish or by using emacsclient --eval
-  ;; latter method is used in login-3.py and call-emacs-after-dropbox-sync
+  ;; latter method is used in login-3.py and call-emacs-after-cloud-sync
   (interactive)
   (cond (jrv-finish-startup-complete
          ;; run only if startup complete
          (setq last-nonmenu-event nil)
          ;; force a dialog box not mini buffer
-         (when (yes-or-no-p "Run after-dropbox-sync?")
+         (when (yes-or-no-p "Run after-cloud-sync?")
            (escreen-goto-screen-0)
            (message "running local-git-copies")
            (unless my-no-internet (local-git-copies))
            (my-std-windows)))
         (t
          ;; else run ourselves when startup complete
-         (message "Queueing after-dropbox-sync to run at end")
-         (setq jrv-finish-after-dropbox-sync-waiting t))))
+         (message "Queueing after-cloud-sync to run at end")
+         (setq jrv-finish-after-cloud-sync-waiting t))))
 
 
 (defun run-jrv-finish(std mail &optional no-ads)
@@ -148,10 +148,10 @@
   (setq jrv-finish-startup-complete t)
   (message "JRV startup complete")
   (when (and std
-             (not my-do-not-wait-for-dropbox)
+             (not my-do-not-wait-for-cloud)
              (not no-ads))
-    (start-process "dropbox-synced" "*dropbox-wait*"
-                   "call-emacs-after-dropbox-sync"))
-  (when jrv-finish-after-dropbox-sync-waiting (after-dropbox-sync)))
+    (start-process "cloud-synced" "*cloud-wait*"
+                   "call-emacs-after-cloud-sync"))
+  (when jrv-finish-after-cloud-sync-waiting (after-cloud-sync)))
 
 

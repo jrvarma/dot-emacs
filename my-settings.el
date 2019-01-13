@@ -16,6 +16,7 @@
 (defvar my-phone (file-exists-p "~/this-is-my-phone"))
 (defvar my-no-internet (file-exists-p "~/no-internet"))
 (defvar my-on-vacation (file-exists-p "~/on-vacation"))
+(defvar my-for-rss-emails (file-exists-p "~/this-is-for-rss-emails"))
 
 (defgroup JRVarma nil
     "JRVarma init.el configuration management"
@@ -67,7 +68,7 @@
 
 ;; email (notmuch) settings
 
-(defcustom my-run-get-mails (not my-minimal)
+(defcustom my-run-get-mails (not (or my-minimal my-for-rss-emails))
   "*Whether to run get-my-mails on startup and repeatedly thereafter (see jrv-notmuch.el)."
   :type 'boolean
   :group 'JRVarma)
@@ -99,8 +100,8 @@
   :type 'string
   :group 'JRVarma)
 
-(defcustom my-do-not-wait-for-dropbox t
-  "*Whether to open my-org file without waiting for dropbox sync to complete (see jrv-finish.el)."
+(defcustom my-do-not-wait-for-cloud t
+  "*Whether to open my-org file without waiting for cloud sync to complete (see jrv-finish.el)."
   :type 'boolean
   :group 'JRVarma)
 
@@ -121,6 +122,16 @@
 
 (defcustom my-split-window-at-startup (not my-minimal)
   "*Whether to split windows horizontally at startup (see jrv-finish.el)."
+  :type 'boolean
+  :group 'JRVarma)
+
+(defcustom my-require-god-mode nil
+  "*Whether to load jrv-god"
+  :type 'boolean
+  :group 'JRVarma)
+
+(defcustom my-require-key-chord nil
+  "*Whether to load jrv-key-chord"
   :type 'boolean
   :group 'JRVarma)
 
@@ -205,10 +216,33 @@
   :type 'string
   :group 'JRVarma)
 
+(defcustom my-h64-gpg-file
+  (file-truename "~/0/h64.gpg")
+  "*Path to h64-gpg-file (see jrv-h64.el)."
+  :type 'string
+  :group 'JRVarma)
+
+(defcustom my-h64-site-file
+  (file-truename "~/0/h64-sites")
+  "*Path to h64-sites file (see jrv-h64.el)."
+  :type 'string
+  :group 'JRVarma)
+
+(defcustom my-h64-pwd-len 8
+  "*Number of characters excluding padding in h64 password (see jrv-h64.el)."
+  :type 'integer
+  :group 'JRVarma)
+
+(defcustom my-h64-padding "%"
+  "*String to be appended to h64 password (see jrv-h64.el)."
+  :type 'string
+  :group 'JRVarma)
+
+
 ;; override many settings when running without internet
 (when my-no-internet 
   (setq my-run-timelog nil)
-  (setq my-do-not-wait-for-dropbox t)
+  (setq my-do-not-wait-for-cloud t)
   (setq my-run-get-mails nil)
   (setq my-open-org-file nil)
   (setq my-timelog-categories-file nil))

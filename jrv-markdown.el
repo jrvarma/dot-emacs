@@ -34,6 +34,7 @@
     (kill-buffer outbuf)
     (switch-to-buffer buf)))
 
+(declare-function find-file-in-other-window "jrv-buffer-functions")
 (defun markdown-to-pdf (prompt)
   "Export markdown to pdf file and display it in pdf viewer"
   (interactive "P")
@@ -41,6 +42,7 @@
         (outbuf (generate-new-buffer "*pdffile*"))
         (outname (markdown-export-file-name ".pdf"))
         (old-markdown-command markdown-command)
+        (markdown-failed nil)
         (pandoc "pandoc")
         (pandoc-opt "-V 'mainfont:Nimbus Roman' --pdf-engine=xelatex -f markdown"))
     (when prompt
@@ -51,15 +53,26 @@
     (set-buffer buf)
     (setq markdown-command (concat pandoc " " pandoc-opt " -o " outname))
     (message "Running pandoc")
-    (markdown (buffer-name outbuf))
-    (message "Pandoc finished")
-    (setq markdown-command old-markdown-command)
-    (if (> (buffer-size outbuf) 0)
-        (switch-to-buffer outbuf)
-      (kill-buffer outbuf)
-      (let ((process-connection-type nil)) 
-        (start-process "*launch*" nil "xdg-open" outname))
-      (switch-to-buffer buf))))
+    (condition-case err
+        (markdown (buffer-name outbuf))
+         ;; The handler.
+         (error
+          (message "%s" (error-message-string err))
+          (setq markdown-failed t)
+          ;; markdown-command is buffer local
+          ;; so we must change it before switching buffer
+          (setq markdown-command old-markdown-command)
+          (switch-to-buffer outbuf)))
+    (unless markdown-failed
+      (setq markdown-command old-markdown-command)
+      (message "Pandoc finished")
+      (if (> (buffer-size outbuf) 0)
+          (switch-to-buffer outbuf)
+        (kill-buffer outbuf)
+        (find-file-in-other-window outname)))))
+        ;; (let ((process-connection-type nil)) 
+        ;;   (start-process "*launch*" nil "xdg-open" outname))
+        ;; (switch-to-buffer buf)))))
 
 
 (defun markdown-key-bindings()

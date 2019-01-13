@@ -20,6 +20,9 @@
 (setq comint-scroll-show-maximum-output t)
 (defvar comint-scroll-to-bottom-on-output)
 (setq comint-scroll-to-bottom-on-output t)
+(defvar ess-smart-S-assign-key)
+(setq ess-smart-S-assign-key nil)
+
 (add-hook 'ess-mode-hook
      '(lambda () 
         (define-key ess-mode-map [(control ?c) (control ?h)] 'my-r-help)
@@ -47,23 +50,13 @@
 (defvar ess-swv-pdflatex-commands)
 (setq ess-swv-pdflatex-commands '("xelatex" "pdflatex" "texi2pdf" "make"))
 (defvar ess-pdf-viewer-pref)
-(setq ess-pdf-viewer-pref '"evince")
-
+(setq ess-pdf-viewer-pref "emacsclient")
+;; setq does not work for TeX-source-correlate-mode so we customize
+;; (custom-set-variables '(TeX-source-correlate-mode t))
 (defun ess-bibtex ()
    "Run bibtex on tex files underlying the Rnw file in the buffer."
    (interactive)
    (shell-command (concat "bibtex " (replace-regexp-in-string "\.Rnw" "" (buffer-name)))))
 
-(declare-function poly-markdown+r-mode "poly-R.el")
-(defun rmd-mode ()
-  "ESS Markdown mode for rmd files"
-  (interactive)
-  (require 'poly-R)
-  (require 'poly-markdown)     
-  (poly-markdown+r-mode))
-
-;; Default file extensions for rmd mode
-(setq auto-mode-alist 
-	(cons '("\\.Rmd\\'" . rmd-mode) 
-		auto-mode-alist)) 
+(add-to-list 'auto-mode-alist '("\\.Rmd$" . poly-markdown+r-mode))
 

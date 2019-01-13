@@ -56,4 +56,15 @@
 
 ; allow use in minibuffers
 (setq enable-recursive-minibuffers 1)
-(global-set-key [f12] 'get-real-path)
+;; (global-set-key [f12] 'get-real-path)
+
+(declare-function read-file-name "minibuffer")
+(declare-function confirm-nonexistent-file-or-buffer "files")
+(defun jrv-find-file-real-path ()
+  (interactive)
+  (let* ((path (get-real-path t))
+         (dir (file-name-directory path))
+         (file (or (file-name-nondirectory path) "")))
+    (message "%s    %s" dir file)
+    (find-file
+     (read-file-name "Find file: " dir nil (confirm-nonexistent-file-or-buffer) file))))

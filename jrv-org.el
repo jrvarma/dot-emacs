@@ -5,6 +5,14 @@
 (require 'my-settings)          ; my settings 
 (require 'jrv-mypaths)          ; define my commonly used paths
 (require 'org)
+(require 'org-clock)
+(require 'org-timer)
+
+;; save clock history across sessions
+;; (defvar org-clock-persist)
+;; (setq org-clock-persist t)
+;; (declare-function org-clock-persistence-insinuate "org")
+;; (org-clock-persistence-insinuate)
 
 ;; Open files with the extension ".org" in org-mode.
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
@@ -46,7 +54,7 @@
 
 (defvar jrv-org-arch-file (jrv-org-suffix "jrv.arch.org"))
 (defvar org-archive-location)
-(setq org-archive-location (jrv-org-prefix jrv-org-arch-file))
+(setq org-archive-location (concat (jrv-org-prefix jrv-org-arch-file) "::"))
 
 ;; projects are identified by the :proj: tag which should not be inherited
 (defvar org-tags-exclude-from-inheritance)
@@ -86,12 +94,20 @@
 ;;         (tags . " %i %-12:c%-12:b")
 ;;         (search . " %i %-12:c%-12:b")))
 
+;; custom view for Unscheduled TODOs
+(defvar org-agenda-custom-commands)
+(setq org-agenda-custom-commands
+      '(("u" todo "TODO"
+         ((org-agenda-todo-ignore-scheduled 'all)
+          (org-agenda-todo-ignore-deadlines 'all)
+          (org-agenda-overriding-header "Unscheduled TODOs: ")))))
+
 ;; use habit style in todo
 (add-to-list 'org-modules 'org-habit t)
 
 ;; Show only today's time in the mode line when clocking tasks
-(defvar org-clock-modeline-total)
-(setq org-clock-modeline-total 'today)
+(defvar org-clock-mode-line-total)
+(setq org-clock-mode-line-total 'today)
 
 ;; basic set of keywords 
 (defvar org-todo-keywords)
@@ -122,6 +138,7 @@
   (interactive)
   (org-agenda-list)
   (org-timer-start)
+  (jrv/org-clock-populate)
   (setq org-timer-pause-time (current-time))
   (org-timer-set-mode-line 'pause))
 
@@ -144,55 +161,66 @@
   (when (clock-or-timer-active) ;; do nothing unless clock-or-timer-active
     ;; clock out without error 
     (org-clock-out nil t nil) 
-    ;; pause timer 
-    ;; this code modified from 
-    ;; source code of org-timer-pause-or-continue
-    (when (and (boundp 'org-timer-pause-time)
-               (not org-timer-pause-time))
-      (setq org-timer-pause-time (current-time))
-      (org-timer-set-mode-line 'pause)
-      (message "Timer paused at %s" (org-timer-value-string)))
     ;; now make org agenda visible in screen 0
     (when (featurep 'escreen)
       (declare-function escreen-goto-screen-0 "escreen")
       (escreen-goto-screen-0))
     (org-agenda-list)))
 
-(declare-function org-agenda-clock-in "org-agenda")
-;; (declare-function org-float-time "org")
-(defvar org-timer-start-time)
-(defun clock-in-and-resume-timer (arg)
-  (interactive "P") 
-  (org-agenda-clock-in arg)         ; clock in 
-  (cond                             ; resume timer
-   ((not org-timer-start-time) (error "No timer is running"))
-   (org-timer-pause-time
-    ;; timer is paused, continue
-    (setq org-timer-start-time
-          (seconds-to-time
-           (-
-            (float-time)
-            (- (float-time org-timer-pause-time)
-               (float-time org-timer-start-time))))
-          org-timer-pause-time nil)
-    (org-timer-set-mode-line 'on)
-    (run-hooks 'org-timer-continue-hook)
-    (message "Timer continues at %s" (org-timer-value-string)))))
+;; org-timer-pause-or-continue is a toggle
+;; we use this function to create separate pause and continue functions
+(defun jrv/pause-timer (&rest arg)
+  "Pause timer"
+  (interactive)
+  (when (and (boundp 'org-timer-pause-time)
+             (not org-timer-pause-time))
+    (org-timer-pause-or-continue)))
+
+(defun jrv/resume-timer (&rest arg)
+  (interactive) 
+  (when (not org-timer-start-time) (error "No timer is running"))
+  (when org-timer-pause-time (org-timer-pause-or-continue)))
+
+(advice-add 'org-clock-in :after #'jrv/resume-timer)
+(advice-add 'org-clock-out :after #'jrv/pause-timer)
 
 (defvar org-agenda-keymap)
 (add-hook 'org-agenda-mode-hook
-          (lambda ()
-            (define-key org-agenda-keymap (kbd "Z")
-              (lambda () (interactive) (setq current-prefix-arg '(4))
-                (call-interactively 'org-refile)))
-            (define-key org-agenda-keymap (kbd "I") 'clock-in-and-resume-timer)
-            (define-key org-agenda-keymap (kbd "O") 'clock-out-and-pause-timer)))
+          (lambda () (define-key org-agenda-keymap (kbd "Z")
+              (lambda () (interactive) (org-refile '(4))))))
 
 ;; org capture
 (defvar org-default-notes-file)
 (setq org-default-notes-file h-org-jrv-file)
+(defvar org-capture-templates)
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline org-default-notes-file "Tasks")
+         ;; "* TODO %? %a %i\nSCHEDULED: <%(org-read-date)>\n")))
+         "* TODO %? %a %i\nSCHEDULED: %(org-insert-time-stamp (current-time))\n")))
 (require 'org-notmuch)
 
 (defvar org-catch-invisible-edits)
 (setq org-catch-invisible-edits 'smart)
 
+(defun jrv/org-clock-populate-one-pattern (pattern)
+  (let ((buffer (find-file-noselect h-org-jrv-file)))
+    (save-current-buffer
+      (set-buffer buffer)
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward (concat "^" pattern "$") nil t)
+          (move-beginning-of-line nil)
+          (org-clock-history-push (point) buffer))))))
+
+(defvar org-clock-history-length)
+(setq org-clock-history-length 10)
+(defvar jrv-org-clock-patterns-file
+  (jrv-org-prefix-and-suffix "jrv-clock-patterns.txt"))
+(defun jrv/org-clock-populate ()
+  "Clear org-clock-history and populate from patterns file"
+  (interactive)
+  (setq org-clock-history nil)
+  (mapc 'jrv/org-clock-populate-one-pattern
+        (with-temp-buffer
+          (insert-file-contents jrv-org-clock-patterns-file)
+          (split-string (buffer-string) "\n" t))))

@@ -41,7 +41,10 @@
   (set-process-sentinel 
    (start-process "beamer-ho" "*beamer-ho*" "beamer-ho.py" 
                   (file-name-sans-extension (buffer-file-name)))
-   '(lambda (process event) (message "Making handout file status: %s" event))))
+   '(lambda (process event)
+      (if (eq event "finished")
+          (message "Making handout file succeeded")
+        (switch-to-buffer "*beamer-ho*")))))
 
 (defun latex-keydef(which-map)
   (define-key which-map [(control ?c) (control ?h)] 'TeX-help)
@@ -64,7 +67,7 @@
 (setq TeX-view-program-selection
       (quote
        (((output-dvistyle-pstricks)  "xdg-open") (output-dvi "xdg-open") 
-        (output-pdf "xdg-open") (output-html "xdg-open"))))
+        (output-pdf "PDF Tools") (output-html "xdg-open"))))
 
 (defvar my-latex-help-file) ;; from my-settings
 (defun TeX-help ()

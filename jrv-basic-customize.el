@@ -150,4 +150,6 @@
 
 ;; use pdf-tools instead of docview for pdf files
 (declare-function pdf-tools-install "pdf-tools")
-(pdf-tools-install)
+(defvar my-phone)                   ;; from my-settings
+(when (not my-phone)
+  (pdf-tools-install t))

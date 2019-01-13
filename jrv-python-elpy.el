@@ -32,17 +32,6 @@
   (unless (string-match (file-name-extension buffer-file-name) "(Plw)|(pmd)$")
       (flycheck-mode)))
 
-;; Restore windmove (meta-arrow key) bindings in elpy mode
-(defvar elpy-mode-map)
-(defun restore-windmove-keys()
-  "Restore windmove (meta-arrow key) bindings in elpy mode"
-  (define-key elpy-mode-map [(meta left)] nil)
-  (define-key elpy-mode-map [(meta right)] nil)
-  (define-key elpy-mode-map [(meta up)] nil)
-  (define-key elpy-mode-map [(meta down)] nil))
-
-(eval-after-load 'elpy '(restore-windmove-keys))
-
 ;;; Load offline python html documentation in browser
 (defvar my-offline-python-help-file) ; my-settings
 (defun python-help ()
