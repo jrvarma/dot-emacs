@@ -1,21 +1,7 @@
 ;;; text functions: proper case, spelling, space to dash etc
 (provide 'jrv-text-functions)
 
-;;; Spell Checking and word count
-(defvar ispell-program-name)
-(setq-default ispell-program-name "/usr/bin/aspell")
-;; British spelling
-;; (setq ispell-dictionary "british")
-;; Flyspell
-(autoload 'flyspell-mode "flyspell" "On-the-fly spelling checker." t)
-(autoload 'flyspell-delay-command "flyspell" "Delay on command." t) 
-(autoload 'tex-mode-flyspell-verify "flyspell" "" t) 
-(add-hook 'LaTeX-mode-hook 'flyspell-mode)
-(add-hook 'nxml-mode-hook 'flyspell-mode)
-(add-hook 'markdown-mode-hook 'flyspell-mode)
-
-;; Word count etc 
-(defun wc (&optional start end)
+(defun jrv/text-wc (&optional start end)
    "Prints number of lines, words and characters in region or whole buffer."
    ;; taken from http://www.emacswiki.org/emacs/WordCount
    (interactive)
@@ -27,8 +13,7 @@
        (while (< (point) end) (if (forward-word 1) (setq n (1+ n)))))
      (message "wc: %3d %3d %3d" (count-lines start end) n (- end start))))
 
-;;; proper-case-region
-(defun proper-case-region (beginning end)
+(defun jrv/text-proper-case-region (beginning end)
   "Proper (title) case region. Capitalize 1st letter of words except articles prepositions etc"
   (interactive "r")
 ;;; 0. Save current state
@@ -64,18 +49,18 @@
       (backward-word) 
       (downcase-word 1))
     )
-  (normal-mode)    
-  )
-)
+  (normal-mode)
+  (goto-char end)
+  (deactivate-mark)))
 
-(defun decapitalize-word()
+(defun jrv/text-decapitalize-word()
   "Change 1st letter of word to lower case. Useful when autocomplete capitilizes word"
   (interactive)
   (backward-word) 
   (downcase-word 1))
 
 
-(defun space-to-dash(beg end)
+(defun jrv/text-space-to-dash(beg end)
   "Change spaces to dash in region. Useful for example while making file names"
   (interactive "*r")
   (save-restriction

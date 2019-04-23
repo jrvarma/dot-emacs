@@ -1,32 +1,99 @@
 #!/usr/bin/python
 # mimedown - generate multipart text and HTML MIME message from Markdown input.
 
-import markdown, subprocess, os
+import subprocess
+import re
+from os import devnull
 from tempfile import NamedTemporaryFile
 from os.path import realpath, expanduser
 
-with open(realpath(expanduser("~/0/dj/Signature_New.txt")), 'r') as infile:
-    signature = infile.read()
-
-signature_markdown = '\n<pre>\n' + signature + '\n<\pre>\n'
-
-def mimedown(input, output):
-    text = input.read()
-    text = text.replace(signature, signature_markdown)
-    html = markdown.markdown(text, extensions= ['markdown.extensions.extra'], safe_mode=False)
-    html = "<html><head><title></title><body>%s</body></html>" % html
-    print('''<#multipart type=alternative>
+fmt = """<#multipart type=alternative>
 %s
 <#part type=text/html>
 %s
 <#/multipart>
-''' % (text, html), file=output)
-    fh = NamedTemporaryFile(prefix='mimedown',suffix='.html', delete=False)
-    fh.write(html.encode("UTF-8"))
-    fh.close()
-    subprocess.Popen(['xdg-open', fh.name], shell=False, 
-                     stdout=open(os.devnull), stderr=open(os.devnull))
+%s
+"""
+attachment = r"(<#part .*>\s*<#/part>)"
+
+blockquote_style = ('style="margin:0 0 0 .8ex;border-left:1px #ccc '
+                    'solid;padding-left:1ex"')
+pandoc = ['pandoc', '-t', 'html',
+          '-f', 'markdown-blank_before_blockquote+pipe_tables',
+          '--standalone', '--metadata',  'pagetitle="EMAIL"']
+with open(realpath(expanduser("~/0/dj/Signature_New.txt")), 'r') as infile:
+    signature = "\n-- \n" + infile.read()
+
+
+def narrow(s):
+    # search for signature
+    end = len(s)
+    while s.find(signature, 0, end) != -1:
+        end = s.find(signature, 0, end)
+    # set bottom to signature
+    bottom = s[end:]
+    # set plain to the portion before the signature
+    plain = s[:end]
+    # move all attachments from plain to bottom
+    while True:
+        m = re.search(attachment, plain, flags=re.DOTALL)
+        if m is None:
+            break
+        bottom += m.group()
+        plain = re.sub(attachment, '', plain)
+    # Ensure that every portion of quoted mail (beginning with <)
+    # is followed by a blank line.
+    # This prevents markdown's "lazy blockquote" from
+    # treating the next line also as being part of the blockquote
+    # https://daringfireball.net/projects/markdown/syntax#blockquote
+    plain = re.sub(r'^(>.*\n)(?=[^>\n])', r'\1\n',
+                   plain, flags=re.MULTILINE)
+    return plain, bottom
+
+
+def mimedown(infile, outfile, preview, w3m):
+    text = infile.read()
+    # Move signature and attachment to bottom.
+    plain, bottom = narrow(text)
+    # Convert plain from markdown to html using pandoc
+    res = subprocess.run(pandoc, input=plain,
+                         capture_output=True, universal_newlines=True)
+    html = res.stderr + res.stdout
+    # Use gmail like styling of quoted mail (blockquote)
+    html = html.replace('<blockquote>', '<blockquote %s>' % blockquote_style)
+    if preview:
+        # write html to temp file
+        fh = NamedTemporaryFile(prefix='mimedown', suffix='.html',
+                                delete=False)
+        fh.write(html.encode("UTF-8"))
+        fh.close()
+        # open the tempfile in emacsclient or browser
+        if w3m:
+            command = ['emacsclient', '--eval',
+                       '(w3m-browse-url "%s")' % fh.name]
+        else:
+            command = ['xdg-open', fh.name]
+        subprocess.Popen(command, shell=False,
+                         stdout=open(devnull), stderr=open(devnull))
+    else:
+        # write html to stdout (or other file specified in outfile)
+        print(fmt % (plain, html, bottom), file=outfile)
+
 
 if __name__ == '__main__':
-    import sys
-    mimedown(sys.stdin, sys.stdout)
+    from sys import stdin, stdout, argv
+    # Text/markdown input is read from stdin and converted to html
+    # Two optional arguments --preview and --w3m determine output
+    # --preview not specified
+    #      html output is written to stdout
+    # --preview is specified
+    #      html output goes to a temp file
+    #      --w3m specified
+    #            temp file (html) is opened in emacsclient
+    #            and rendered using w3m-browse-url
+    #      --w3m not specified
+    #            temp file (html) is opened in the default browser
+    #            using xdg-open
+    mimedown(infile=stdin, outfile=stdout,
+             preview="--preview" in argv,
+             w3m="--w3m" in argv)

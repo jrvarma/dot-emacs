@@ -1,24 +1,13 @@
-;;; markdown mode
- 
-(provide 'jrv-markdown)
-(require 'my-settings)
-(defvar my-minimal) ; from my-settings
+(provide 'jrv-markdown-functions)
 
-(defvar markdown-mode-map)
-(declare-function markdown-export-file-name  "markdown-mode")
-(declare-function markdown  "markdown-mode")
+(eval-and-compile  ;; this is all to suppress compiler warning
+  (require 'package)
+  (setq package-enable-at-startup nil)
+  (package-initialize)
+  (require 'markdown-mode)
+)
 
-;; use pandoc to process markdown
-(defvar markdown-command)
-(setq markdown-command "pandoc --ascii -f markdown -t html")
-;; in .pmd files, run Pweave first before running pandoc
-(make-variable-buffer-local 'markdown-command)
-(add-hook 'markdown-mode-hook
-          '(lambda ()
-             (when (string-match "\.[pP]md$" (buffer-name))
-               (setq markdown-command "pwv-pandoc"))))
-
-(defun markdown-export-blog ()
+(defun jrv/markdown-export-blog ()
   "Export markdown to .blog file"
   (interactive)
   (let ((buf (current-buffer))
@@ -34,8 +23,7 @@
     (kill-buffer outbuf)
     (switch-to-buffer buf)))
 
-(declare-function find-file-in-other-window "jrv-buffer-functions")
-(defun markdown-to-pdf (prompt)
+(defun jrv/markdown-to-pdf (prompt)
   "Export markdown to pdf file and display it in pdf viewer"
   (interactive "P")
   (let ((buf (current-buffer))
@@ -69,22 +57,7 @@
       (if (> (buffer-size outbuf) 0)
           (switch-to-buffer outbuf)
         (kill-buffer outbuf)
-        (find-file-in-other-window outname)))))
-        ;; (let ((process-connection-type nil)) 
-        ;;   (start-process "*launch*" nil "xdg-open" outname))
-        ;; (switch-to-buffer buf)))))
-
-
-(defun markdown-key-bindings()
-  (define-key markdown-mode-map [(meta f3)] 'markdown-preview)
-  (define-key markdown-mode-map [(control c) (control c) ?b] 
-    'markdown-export-blog)
-  (define-key markdown-mode-map [(control c) (control c) ?P] 
-    'markdown-to-pdf)
-  (when (require 'jrv-html nil my-minimal)
-    (define-key markdown-mode-map [(control \")] 'html-double-quote)
-    (define-key markdown-mode-map [(control \')] 'html-single-quote)
-    (define-key markdown-mode-map [(control -)] 'html-ndash))
-)
-(add-hook 'markdown-mode-hook  'markdown-key-bindings)
+        (other-window 1)
+        (find-file outname)
+        (other-window 1)))))
 
