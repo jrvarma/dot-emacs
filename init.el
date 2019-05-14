@@ -592,7 +592,7 @@
       (mapc #'kill-buffer buffers)))
   :bind
   (:map magit-status-mode-map 
-        ("q" . jrv/-magit-kill-buffers)))
+        ("q" . jrv/magit-kill-buffers)))
 
 (use-package nxml-mode
   :mode "\\.blog\\'"
