@@ -5,7 +5,7 @@
 (declare-function ess-execute "ess-inf.el")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun jrv/ess-r-help(beg end)
+(defun jrv/ess/r-help(beg end)
   "Start html help. Help on topic if region highlighted"
   ;; The code to determine whether there is an active region is based on
   ;; http://stackoverflow.com/questions/10594208/how-do-i-get-region-selection-programmably-in-emacs-lisp
@@ -19,7 +19,7 @@
     (ess-execute "help.start()")))
 
 
-(defun jrv/ess-bibtex ()
+(defun jrv/ess/bibtex ()
    "Run bibtex on tex files underlying the Rnw file in the buffer."
    (interactive)
    (shell-command (concat "bibtex " (replace-regexp-in-string "\.Rnw" "" (buffer-name)))))

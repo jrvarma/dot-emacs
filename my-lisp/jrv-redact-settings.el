@@ -1,10 +1,10 @@
-(provide 'jrv-print-settings)
+(provide 'jrv-redact-settings)
 
 ;; Used to print redacted version of jrv-settings.el
 ;; Variable values and initial values are redacted
 ;; Variable name, type and docstring are preserved
 
-(defun jrv/print-settings-redacted(out-file-name)
+(defun jrv/redact/create(out-file-name)
   (interactive)
   (find-file out-file-name)
   (erase-buffer)
@@ -21,10 +21,10 @@
           v "*******"
           (get v 'variable-documentation)
           (get v 'custom-type)))
-     (apropos-internal "^jrv/settings-" 'custom-variable-p))
+     (apropos-internal "^jrv/settings/" 'custom-variable-p))
     "\n"))
   (save-buffer)
   (kill-buffer))
-1
-(jrv/print-settings-redacted
+
+(jrv/redact/create
  "~/.emacs.d/my-lisp/jrv-settings-redacted.el")

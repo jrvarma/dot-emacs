@@ -4,7 +4,7 @@
   (add-to-list 'load-path "~/.emacs.d/my-lisp/"))
 (require 'jrv-settings)
 
-(defun jrv/auctex-texcount ()
+(defun jrv/auctex/texcount ()
   (interactive)
   (let*
     ( (this-file (buffer-file-name))
@@ -18,7 +18,7 @@
 
 ;; this function uses a python script beamer-ho.py to add watermarks etc
 ;; beamer-ho.py is assumed to be in the path
-(defun jrv/auctex-make-handout-pdf()
+(defun jrv/auctex/make-handout-pdf()
   "Compile handout PDF from underlying tex file"
   (interactive)
   (when (buffer-modified-p)
@@ -34,9 +34,9 @@
           (message "Making handout file succeeded")
         (switch-to-buffer "*beamer-ho*")))))
 
-(defun jrv/auctex-TeX-help ()
+(defun jrv/auctex/TeX-help ()
   "Display the Not so short guide to Latex"
   (interactive)
   (message "Opening latex not too short guide in browser")
   (start-process "latex-help" "*latex-help*"
-                 "xdg-open" jrv/settings-latex-help-file))
+                 "xdg-open" "/0/tp/Latex-Short-Help.pdf"))

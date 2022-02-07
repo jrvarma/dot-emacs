@@ -20,8 +20,9 @@ blockquote_style = ('style="margin:0 0 0 .8ex;border-left:1px #ccc '
                     'solid;padding-left:1ex"')
 pandoc = ['pandoc', '-t', 'html',
           '-f', 'markdown-blank_before_blockquote+pipe_tables',
+          '-F', 'pantable',
           '--standalone', '--metadata',  'pagetitle="EMAIL"']
-with open(realpath(expanduser("~/0/dj/Signature_New.txt")), 'r') as infile:
+with open(realpath(expanduser("~/0/dj/signature.txt")), 'r') as infile:
     signature = "\n-- \n" + infile.read()
 
 

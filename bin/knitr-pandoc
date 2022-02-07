@@ -1,9 +1,4 @@
 #!/bin/bash
-# infile=`mktemp`
-# outfile=`mktemp`
-# cat > $infile
-# pweave -f markdown -i noweb -o $outfile $infile > /dev/null 
-# pandoc --ascii -f markdown "$@" < $outfile
 
 infile=`mktemp -p . -t rmd.XXXXXXXXXX`
 # take pains to remove infile when script terminates
@@ -15,13 +10,13 @@ errfile=`mktemp -p . -t error.XXXXXXXXXX`
 # copy stdin to infile
 cat > $infile
 
-# pweave it to produce markdown file (outfile)
-pweave -f markdown -i noweb -o $outfile $infile \
-       >$errfile 2>&1
+# knit it to produce markdown file (outfile)
+Rscript -e "library(knitr); knit(\"$infile\", \"$outfile\")" \
+        >$errfile 2>&1
 [ $? != 0 ] && exit 1
 
 # compile markdown file (outfile)
-pandoc --ascii -f markdown -F pantable "$@" < $outfile 2>>$errfile
+pandoc --ascii -f markdown "$@" < $outfile 2>>$errfile
 [ $? != 0 ] && exit 1
 
 # remove tex file and error file only when script succeeds

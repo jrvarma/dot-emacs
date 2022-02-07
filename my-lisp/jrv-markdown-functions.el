@@ -7,7 +7,7 @@
   (require 'markdown-mode)
 )
 
-(defun jrv/markdown-export-blog ()
+(defun jrv/markdown/export-blog ()
   "Export markdown to .blog file"
   (interactive)
   (let ((buf (current-buffer))
@@ -23,7 +23,7 @@
     (kill-buffer outbuf)
     (switch-to-buffer buf)))
 
-(defun jrv/markdown-to-pdf (prompt)
+(defun jrv/markdown/to-pdf (prompt)
   "Export markdown to pdf file and display it in pdf viewer"
   (interactive "P")
   (let ((buf (current-buffer))
@@ -32,12 +32,17 @@
         (old-markdown-command markdown-command)
         (markdown-failed nil)
         (pandoc "pandoc")
-        (pandoc-opt "-V 'mainfont:Nimbus Roman' --pdf-engine=xelatex -f markdown"))
+        (pandoc-opt (concat ;; "-V 'mainfont=Nimbus Roman' "
+                            "--pdf-engine=xelatex "
+                            "-F pantable "
+                            "-f markdown ")))
     (when prompt
         (setq pandoc-opt
               (read-string "Pandoc options: " pandoc-opt nil pandoc-opt)))
     (when (string-match "\.[pP]md$" (buffer-name))
       (setq pandoc "pwv-pandoc"))
+    (when (string-match "\.[rR]md$" (buffer-name))
+      (setq pandoc "knitr-pandoc"))
     (set-buffer buf)
     (setq markdown-command (concat pandoc " " pandoc-opt " -o " outname))
     (message "Running pandoc")

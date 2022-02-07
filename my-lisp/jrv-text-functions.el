@@ -1,7 +1,7 @@
 ;;; text functions: proper case, spelling, space to dash etc
 (provide 'jrv-text-functions)
 
-(defun jrv/text-wc (&optional start end)
+(defun jrv/text/wc (&optional start end)
    "Prints number of lines, words and characters in region or whole buffer."
    ;; taken from http://www.emacswiki.org/emacs/WordCount
    (interactive)
@@ -13,12 +13,12 @@
        (while (< (point) end) (if (forward-word 1) (setq n (1+ n)))))
      (message "wc: %3d %3d %3d" (count-lines start end) n (- end start))))
 
-(defun jrv/text-proper-case-region (beginning end)
+(defun jrv/text/proper-case-region (beginning end)
   "Proper (title) case region. Capitalize 1st letter of words except articles prepositions etc"
   (interactive "r")
 ;;; 0. Save current state
   (save-excursion
-    (text-mode)
+    ;; (text-mode) ;; this creates big problems in emails and markdown/Latex files
 ;;; 2. Capitalize the whole region (initial letter of each word is capital)
     (capitalize-region beginning end)
 ;;; 3. set up regexp to match words which must not be capitalized
@@ -49,18 +49,24 @@
       (backward-word) 
       (downcase-word 1))
     )
-  (normal-mode)
+  ;; (normal-mode) ;; this creates big problems in emails and markdown/Latex files
   (goto-char end)
   (deactivate-mark)))
 
-(defun jrv/text-decapitalize-word()
-  "Change 1st letter of word to lower case. Useful when autocomplete capitilizes word"
+(defun jrv/text/toggle-capitalize-word()
+  "Toggle between lower case and first letter capitalized. Correct autocompletion"
   (interactive)
-  (backward-word) 
-  (downcase-word 1))
+  ;; https://www.emacswiki.org/emacs/RotateWordCapitalization
+  (let ((case-fold-search nil))
+    (save-excursion
+      (forward-char)
+      (backward-word)
+      (if (looking-at-p "[[:lower:]]")
+          (capitalize-word 1)
+        (downcase-word 1)))))
 
 
-(defun jrv/text-space-to-dash(beg end)
+(defun jrv/text/space-to-dash(beg end)
   "Change spaces to dash in region. Useful for example while making file names"
   (interactive "*r")
   (save-restriction
